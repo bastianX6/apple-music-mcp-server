@@ -1,0 +1,49 @@
+{
+  "name": "apple-music-mcp-server",
+  "version": "0.1.0",
+  "description": "MCP server for Apple Music API integration (dual-token auth, catalog + library tools)",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "apple-music-mcp": "./bin/apple-music-mcp",
+    "apple-music-mcp-setup": "./bin/apple-music-mcp-setup"
+  },
+  "files": [
+    "dist",
+    "bin"
+  ],
+  "scripts": {
+    "build": "esbuild src/index.ts src/setup.ts --bundle --platform=node --target=es2022 --outdir=dist --format=esm --packages=external && chmod +x dist/index.js dist/setup.js",
+    "dev": "tsx src/index.ts",
+    "setup": "tsx src/setup.ts",
+    "test": "vitest"
+  },
+  "keywords": [
+    "mcp",
+    "apple-music",
+    "musickit",
+    "ai",
+    "server"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "express": "^4.19.2",
+    "jose": "^5.2.0",
+    "node-fetch": "^3.3.2",
+    "open": "^9.1.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.11.19",
+    "esbuild": "^0.21.5",
+    "eslint": "^8.56.0",
+    "prettier": "^3.2.5",
+    "tsx": "^4.7.0",
+    "typescript": "^5.4.5",
+    "vitest": "^1.4.0"
+  }
+}
