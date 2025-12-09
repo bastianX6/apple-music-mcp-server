@@ -7,9 +7,12 @@ export function registerManagementTools(server: McpServer, client: AppleMusicCli
   const addSongsSchema = z.object({ ids: z.string().min(1) });
   const addAlbumsSchema = z.object({ ids: z.string().min(1) });
   const createPlaylistSchema = z.object({ name: z.string().min(1), description: z.string().optional() });
-  const addItemsSchema = z.object({ playlistId: z.string().min(1), songIds: z.string().min(1) });
+  const addItemsSchema = z.object({
+    playlistId: z.string().min(1),
+    songIds: z.union([z.string(), z.number()]).transform(String),
+  });
   const favoritesSchema = z.object({
-    resourceId: z.string().min(1),
+    resourceId: z.union([z.string(), z.number()]).transform(String),
     resourceType: z.enum(['songs', 'albums', 'playlists']),
   });
 
@@ -17,9 +20,8 @@ export function registerManagementTools(server: McpServer, client: AppleMusicCli
     'add_songs_to_library',
     {
       title: 'Add Songs to Library',
-      description: 'Save songs to your personal library',
+      description: 'Save songs to your personal library (Note: May return 405 Method Not Allowed - Apple Music API limitation)',
       inputSchema: addSongsSchema,
-      outputSchema: z.any(),
     },
     async (args: Record<string, unknown>): Promise<CallToolResult> => {
       try {
@@ -31,8 +33,15 @@ export function registerManagementTools(server: McpServer, client: AppleMusicCli
           structuredContent: data,
         };
       } catch (err) {
+        const errorMsg = err instanceof Error ? err.message : String(err);
+        const is405 = errorMsg.includes('405');
         return {
-          content: [{ type: 'text', text: err instanceof Error ? err.message : String(err) }],
+          content: [{ 
+            type: 'text', 
+            text: is405 
+              ? `Apple Music API Limitation: This endpoint returns 405 Method Not Allowed. The Apple Music API does not currently support adding songs to library via this method. Original error: ${errorMsg}`
+              : errorMsg 
+          }],
           isError: true,
         };
       }
@@ -43,9 +52,8 @@ export function registerManagementTools(server: McpServer, client: AppleMusicCli
     'add_albums_to_library',
     {
       title: 'Add Albums to Library',
-      description: 'Save albums to your personal library',
+      description: 'Save albums to your personal library (Note: May return 405 Method Not Allowed - Apple Music API limitation)',
       inputSchema: addAlbumsSchema,
-      outputSchema: z.any(),
     },
     async (args: Record<string, unknown>): Promise<CallToolResult> => {
       try {
@@ -57,8 +65,15 @@ export function registerManagementTools(server: McpServer, client: AppleMusicCli
           structuredContent: data,
         };
       } catch (err) {
+        const errorMsg = err instanceof Error ? err.message : String(err);
+        const is405 = errorMsg.includes('405');
         return {
-          content: [{ type: 'text', text: err instanceof Error ? err.message : String(err) }],
+          content: [{ 
+            type: 'text', 
+            text: is405 
+              ? `Apple Music API Limitation: This endpoint returns 405 Method Not Allowed. The Apple Music API does not currently support adding albums to library via this method. Original error: ${errorMsg}`
+              : errorMsg 
+          }],
           isError: true,
         };
       }
@@ -71,7 +86,6 @@ export function registerManagementTools(server: McpServer, client: AppleMusicCli
       title: 'Create New Playlist',
       description: 'Create a new playlist in your personal library',
       inputSchema: createPlaylistSchema,
-      outputSchema: z.any(),
     },
     async (args: Record<string, unknown>): Promise<CallToolResult> => {
       try {
@@ -97,7 +111,6 @@ export function registerManagementTools(server: McpServer, client: AppleMusicCli
       title: 'Add Items to Playlist',
       description: 'Add songs to an existing playlist',
       inputSchema: addItemsSchema,
-      outputSchema: z.any(),
     },
     async (args: Record<string, unknown>): Promise<CallToolResult> => {
       try {
@@ -125,22 +138,29 @@ export function registerManagementTools(server: McpServer, client: AppleMusicCli
     'add_to_favorites',
     {
       title: 'Add to Favorites',
-      description: 'Add a resource (song, album, playlist) to your favorites',
+      description: 'Add a resource (song, album, playlist) to your favorites (Note: Currently returns 405 Method Not Allowed - Known Apple Music API limitation)',
       inputSchema: favoritesSchema,
-      outputSchema: z.any(),
     },
     async (args: Record<string, unknown>): Promise<CallToolResult> => {
       try {
         const { resourceId, resourceType } = favoritesSchema.parse(args);
+        const endpoint = `/v1/me/favorites/${resourceType}`;
         const payload = { data: [{ id: resourceId, type: resourceType }] };
-        const data = await client.post('/v1/me/favorites', payload, true);
+        const data = await client.post(endpoint, payload, true);
         return {
           content: [{ type: 'text', text: JSON.stringify(data, null, 2) }],
           structuredContent: data,
         };
       } catch (err) {
+        const errorMsg = err instanceof Error ? err.message : String(err);
+        const is405 = errorMsg.includes('405');
         return {
-          content: [{ type: 'text', text: err instanceof Error ? err.message : String(err) }],
+          content: [{ 
+            type: 'text', 
+            text: is405 
+              ? `Apple Music API Limitation: This endpoint returns 405 Method Not Allowed. The Apple Music API does not currently support adding items to favorites via this method. This is a known API restriction. Original error: ${errorMsg}`
+              : errorMsg 
+          }],
           isError: true,
         };
       }

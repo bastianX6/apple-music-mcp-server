@@ -28,7 +28,11 @@ export class AppleMusicClient {
       body: JSON.stringify(body),
     });
     await this.ensureOk(res);
-    return res.json();
+    
+    // Handle 204 No Content or empty responses
+    const text = await res.text();
+    if (!text) return { success: true };
+    return JSON.parse(text);
   }
 
   private buildUrl(endpoint: string): string {

@@ -4,6 +4,7 @@ import { registerLibraryTools } from '../tools/library-tools.js';
 import { registerManagementTools } from '../tools/management-tools.js';
 import { registerRecommendationTools } from '../tools/recommendation-tools.js';
 import { registerSearchTools } from '../tools/search-tools.js';
+import { registerUtilityTools } from '../tools/utility-tools.js';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 
 export function registerAllTools(server: McpServer, client: AppleMusicClient): void {
@@ -12,4 +13,5 @@ export function registerAllTools(server: McpServer, client: AppleMusicClient): v
   registerLibraryTools(server, client);
   registerRecommendationTools(server, client);
   registerManagementTools(server, client);
+  registerUtilityTools(server, client);
 }

@@ -5,7 +5,6 @@ import { AppleMusicClient } from '../api/client.js';
 
 export function registerRecommendationTools(server: McpServer, client: AppleMusicClient): void {
   const recommendationsSchema = z.object({ limit: z.number().int().min(1).max(100).default(25) });
-  const replaySchema = z.object({ year: z.number().int().min(2015) });
 
   server.registerTool(
     'get_recommendations',
@@ -13,7 +12,6 @@ export function registerRecommendationTools(server: McpServer, client: AppleMusi
       title: 'Get Personalized Recommendations',
       description: 'Retrieve personalized music recommendations based on your listening history',
       inputSchema: recommendationsSchema,
-      outputSchema: z.any(),
     },
     async (args: Record<string, unknown>): Promise<CallToolResult> => {
       try {
@@ -37,14 +35,11 @@ export function registerRecommendationTools(server: McpServer, client: AppleMusi
     'get_replay_data',
     {
       title: 'Get Your Replay Data',
-      description: 'Retrieve your annual Apple Music Replay data for a given year',
-      inputSchema: replaySchema,
-      outputSchema: z.any(),
+      description: 'Retrieve your Apple Music Replay data for the latest eligible year',
     },
-    async (args: Record<string, unknown>): Promise<CallToolResult> => {
+    async (_args: Record<string, unknown>): Promise<CallToolResult> => {
       try {
-        const { year } = replaySchema.parse(args);
-        const data = await client.get(`/v1/me/replay/${year}`, true);
+        const data = await client.get('/v1/me/music-summaries?filter[year]=latest', true);
         return {
           content: [{ type: 'text', text: JSON.stringify(data, null, 2) }],
           structuredContent: data,

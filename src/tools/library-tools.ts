@@ -9,30 +9,41 @@ export function registerLibraryTools(server: McpServer, client: AppleMusicClient
     offset: z.number().int().min(0).default(0),
   });
 
+  const handleLibraryPlaylists = async (args: Record<string, unknown>): Promise<CallToolResult> => {
+    try {
+      const { limit, offset } = commonSchema.parse(args);
+      const params = new URLSearchParams({ limit: String(limit), offset: String(offset) });
+      const data = await client.get(`/v1/me/library/playlists?${params.toString()}`, true);
+      return {
+        content: [{ type: 'text', text: JSON.stringify(data, null, 2) }],
+        structuredContent: data,
+      };
+    } catch (err) {
+      return {
+        content: [{ type: 'text', text: err instanceof Error ? err.message : String(err) }],
+        isError: true,
+      };
+    }
+  };
+
   server.registerTool(
     'get_library_playlists',
     {
       title: 'Get My Playlists',
       description: 'Retrieve your personal library playlists',
       inputSchema: commonSchema,
-      outputSchema: z.any(),
     },
-    async (args: Record<string, unknown>): Promise<CallToolResult> => {
-      try {
-        const { limit, offset } = commonSchema.parse(args);
-        const params = new URLSearchParams({ limit: String(limit), offset: String(offset) });
-        const data = await client.get(`/v1/me/library/playlists?${params.toString()}`, true);
-        return {
-          content: [{ type: 'text', text: JSON.stringify(data, null, 2) }],
-          structuredContent: data,
-        };
-      } catch (err) {
-        return {
-          content: [{ type: 'text', text: err instanceof Error ? err.message : String(err) }],
-          isError: true,
-        };
-      }
+    handleLibraryPlaylists,
+  );
+
+  server.registerTool(
+    'get_library_playlist',
+    {
+      title: 'Get My Playlist',
+      description: 'Alias for retrieving personal library playlists',
+      inputSchema: commonSchema,
     },
+    handleLibraryPlaylists,
   );
 
   server.registerTool(
@@ -41,7 +52,6 @@ export function registerLibraryTools(server: McpServer, client: AppleMusicClient
       title: 'Get My Songs',
       description: 'Retrieve your personal library songs',
       inputSchema: commonSchema,
-      outputSchema: z.any(),
     },
     async (args: Record<string, unknown>): Promise<CallToolResult> => {
       try {
@@ -67,7 +77,6 @@ export function registerLibraryTools(server: McpServer, client: AppleMusicClient
       title: 'Get My Albums',
       description: 'Retrieve your personal library albums',
       inputSchema: commonSchema,
-      outputSchema: z.any(),
     },
     async (args: Record<string, unknown>): Promise<CallToolResult> => {
       try {
@@ -93,7 +102,6 @@ export function registerLibraryTools(server: McpServer, client: AppleMusicClient
       title: 'Get My Artists',
       description: 'Retrieve your saved artists from personal library',
       inputSchema: commonSchema,
-      outputSchema: z.any(),
     },
     async (args: Record<string, unknown>): Promise<CallToolResult> => {
       try {
@@ -118,12 +126,35 @@ export function registerLibraryTools(server: McpServer, client: AppleMusicClient
     {
       title: 'Get My Storefront',
       description: 'Retrieve your Apple Music storefront (region/locale)',
-      inputSchema: z.object({}),
-      outputSchema: z.any(),
     },
     async (_args: Record<string, unknown>): Promise<CallToolResult> => {
       try {
         const data = await client.get('/v1/me/storefront', true);
+        return {
+          content: [{ type: 'text', text: JSON.stringify(data, null, 2) }],
+          structuredContent: data,
+        };
+      } catch (err) {
+        return {
+          content: [{ type: 'text', text: err instanceof Error ? err.message : String(err) }],
+          isError: true,
+        };
+      }
+    },
+  );
+
+  server.registerTool(
+    'get_recently_played',
+    {
+      title: 'Get Recently Played',
+      description: 'Retrieve your recent playback history',
+      inputSchema: commonSchema,
+    },
+    async (args: Record<string, unknown>): Promise<CallToolResult> => {
+      try {
+        const { limit, offset } = commonSchema.parse(args);
+        const params = new URLSearchParams({ limit: String(limit), offset: String(offset) });
+        const data = await client.get(`/v1/me/recent/played?${params.toString()}`, true);
         return {
           content: [{ type: 'text', text: JSON.stringify(data, null, 2) }],
           structuredContent: data,
