@@ -1,5 +1,5 @@
-# Created by https://www.toptal.com/developers/gitignore/api/swiftpackagemanager,swiftpm,swift,macos
-# Edit at https://www.toptal.com/developers/gitignore?templates=swiftpackagemanager,swiftpm,swift,macos
+# Created by https://www.toptal.com/developers/gitignore/api/macos,swift,swiftpm,swiftpackagemanager
+# Edit at https://www.toptal.com/developers/gitignore?templates=macos,swift,swiftpm,swiftpackagemanager
 
 ### macOS ###
 # General
@@ -127,4 +127,4 @@ xcuserdata
 ### SwiftPM ###
 
 
-# End of https://www.toptal.com/developers/gitignore/api/swiftpackagemanager,swiftpm,swift,macos
+# End of https://www.toptal.com/developers/gitignore/api/macos,swift,swiftpm,swiftpackagemanager

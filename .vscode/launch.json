@@ -4,7 +4,7 @@
             "type": "swift",
             "request": "launch",
             "args": [],
-            "cwd": "${workspaceFolder:apple-music-mcp-server}/swift",
+            "cwd": "${workspaceFolder:apple-music-mcp-server}",
             "name": "Debug AppleMusicMCPServer (swift)",
             "target": "AppleMusicMCPServer",
             "configuration": "debug",
@@ -14,7 +14,7 @@
             "type": "swift",
             "request": "launch",
             "args": [],
-            "cwd": "${workspaceFolder:apple-music-mcp-server}/swift",
+            "cwd": "${workspaceFolder:apple-music-mcp-server}",
             "name": "Release AppleMusicMCPServer (swift)",
             "target": "AppleMusicMCPServer",
             "configuration": "release",
@@ -24,7 +24,7 @@
             "type": "swift",
             "request": "launch",
             "args": [],
-            "cwd": "${workspaceFolder:apple-music-mcp-server}/swift",
+            "cwd": "${workspaceFolder:apple-music-mcp-server}",
             "name": "Debug AppleMusicMCPSetup (swift)",
             "target": "AppleMusicMCPSetup",
             "configuration": "debug",
@@ -34,11 +34,31 @@
             "type": "swift",
             "request": "launch",
             "args": [],
-            "cwd": "${workspaceFolder:apple-music-mcp-server}/swift",
+            "cwd": "${workspaceFolder:apple-music-mcp-server}",
             "name": "Release AppleMusicMCPSetup (swift)",
             "target": "AppleMusicMCPSetup",
             "configuration": "release",
             "preLaunchTask": "swift: Build Release AppleMusicMCPSetup (swift)"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:apple-music-mcp-server}",
+            "name": "Debug AppleMusicMCPServer",
+            "target": "AppleMusicMCPServer",
+            "configuration": "debug",
+            "preLaunchTask": "swift: Build Debug AppleMusicMCPServer"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:apple-music-mcp-server}",
+            "name": "Release AppleMusicMCPServer",
+            "target": "AppleMusicMCPServer",
+            "configuration": "release",
+            "preLaunchTask": "swift: Build Release AppleMusicMCPServer"
         }
     ]
 }
