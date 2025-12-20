@@ -5,19 +5,14 @@ A macOS-only MCP server that exposes Apple Music API operations (catalog, librar
 ## Installation
 
 ### Using compile.sh (recommended)
-- From the repo root, run (current layout):
-   ```bash
-   bash swift/compile.sh
-   ```
-   Once the Swift sources live at the repo root, use:
+- From the repo root:
    ```bash
    bash ./compile.sh
    ```
-- The script builds `AppleMusicMCPServer` in release.
-- It installs the server binary to `$HOME/.mcp/AppleMusicMCPServer/bin/AppleMusicMCPServer` (directory is created if missing).
+- The script builds `AppleMusicMCPServer` in release and installs the binary to `$HOME/.mcp/AppleMusicMCPServer/bin/AppleMusicMCPServer` (directory is created if missing).
 
 ### Manual installation (source-based)
-1) From the Swift package directory (current: `swift`, future: repo root), build in release:
+1) From the Swift package directory (repo root), build in release:
    ```bash
    swift build -c release --product AppleMusicMCPServer
    ```
@@ -69,7 +64,7 @@ User token is loaded exclusively from the config file written by `setup`; `APPLE
    ```
 
 ## Tests
-From this `swift` directory:
+From the Swift package directory (repo root):
 ```bash
 swift test
 ```

@@ -2,13 +2,10 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-# Support current layout (Package.swift inside ./swift) and future layout (Package.swift at repo root).
-if [ -f "$SCRIPT_DIR/Package.swift" ]; then
-	SWIFT_DIR="$SCRIPT_DIR"
-elif [ -f "$SCRIPT_DIR/swift/Package.swift" ]; then
-	SWIFT_DIR="$SCRIPT_DIR/swift"
-else
-	echo "Package.swift not found. Expected at $SCRIPT_DIR or $SCRIPT_DIR/swift" >&2
+SWIFT_DIR="$SCRIPT_DIR"
+
+if [ ! -f "$SWIFT_DIR/Package.swift" ]; then
+	echo "Package.swift not found at $SWIFT_DIR" >&2
 	exit 1
 fi
 BUILD_PRODUCT="AppleMusicMCPServer"
