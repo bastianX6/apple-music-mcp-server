@@ -22,6 +22,9 @@ final class ToolRegistryTests: XCTestCase {
         func get(path: String, queryItems: [URLQueryItem]) async throws -> Data {
             lastGetPath = path
             lastGetQueryItems = queryItems
+            if path == "v1/me/storefront" {
+                return Data(#"{"data":[{"id":"us"}]}"#.utf8)
+            }
             return getResponse
         }
 
@@ -57,8 +60,9 @@ final class ToolRegistryTests: XCTestCase {
         let result = try await registry.handleGenericGet(params: params)
 
         XCTAssertEqual(result.isError, false)
-        XCTAssertEqual(stub.lastGetPath, "v1/catalog/us/songs?id=1")
-        XCTAssertTrue(stub.lastGetQueryItems.isEmpty)
+        XCTAssertEqual(stub.lastGetPath, "v1/catalog/us/songs")
+        let dict = queryDict(stub.lastGetQueryItems)
+        XCTAssertEqual(dict["id"], "1")
     }
 
     func testUserStorefrontRequiresUserToken() async throws {
@@ -142,7 +146,7 @@ final class ToolRegistryTests: XCTestCase {
         let result = try await registry.handleGetCatalogSongs(params: params)
 
         XCTAssertEqual(result.isError, false)
-        XCTAssertEqual(stub.lastGetPath, "v1/catalog/jp/songs")
+        XCTAssertEqual(stub.lastGetPath, "v1/catalog/us/songs")
         let dict = queryDict(stub.lastGetQueryItems)
         XCTAssertEqual(dict["limit"], "25")
         XCTAssertEqual(dict["ids"], "1,2")
@@ -183,7 +187,7 @@ final class ToolRegistryTests: XCTestCase {
         let result = try await registry.handleGetCatalogResources(params: params)
 
         XCTAssertEqual(result.isError, false)
-        XCTAssertEqual(stub.lastGetPath, "v1/catalog/gb/stations")
+        XCTAssertEqual(stub.lastGetPath, "v1/catalog/us/stations")
         let dict = queryDict(stub.lastGetQueryItems)
         XCTAssertEqual(dict["ids"], "abc,def")
     }
@@ -283,7 +287,7 @@ final class ToolRegistryTests: XCTestCase {
         let result = try await registry.handleGetCharts(params: params)
 
         XCTAssertEqual(result.isError, false)
-        XCTAssertEqual(stub.lastGetPath, "v1/catalog/ca/charts")
+        XCTAssertEqual(stub.lastGetPath, "v1/catalog/us/charts")
         XCTAssertEqual(queryDict(stub.lastGetQueryItems)["limit"], "50")
     }
 

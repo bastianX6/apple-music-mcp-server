@@ -29,7 +29,7 @@ extension ToolRegistry {
             ),
             Tool(
                 name: "search_catalog",
-                description: "Search Apple Music catalog by term with optional types and storefront.",
+                description: "Search Apple Music catalog by term with optional types. When a user token is present the server resolves the user's storefront and ignores the provided storefront override.",
                 inputSchema: .object([
                     "type": .string("object"),
                     "properties": .object([
@@ -74,7 +74,7 @@ extension ToolRegistry {
             ),
             Tool(
                 name: "get_catalog_songs",
-                description: "Fetch catalog songs by IDs (comma-separated).",
+                description: "Fetch catalog songs by IDs (comma-separated). Uses the user's storefront when available.",
                 inputSchema: .object([
                     "type": .string("object"),
                     "properties": .object([
@@ -115,7 +115,7 @@ extension ToolRegistry {
             ),
             Tool(
                 name: "get_catalog_albums",
-                description: "Fetch catalog albums by IDs (comma-separated).",
+                description: "Fetch catalog albums by IDs (comma-separated). Uses the user's storefront when available.",
                 inputSchema: .object([
                     "type": .string("object"),
                     "properties": .object([
@@ -138,7 +138,7 @@ extension ToolRegistry {
             ),
             Tool(
                 name: "get_catalog_artists",
-                description: "Fetch catalog artists by IDs (comma-separated).",
+                description: "Fetch catalog artists by IDs (comma-separated). Uses the user's storefront when available.",
                 inputSchema: .object([
                     "type": .string("object"),
                     "properties": .object([
@@ -157,7 +157,7 @@ extension ToolRegistry {
             ),
             Tool(
                 name: "get_catalog_playlists",
-                description: "Fetch catalog playlists by IDs (comma-separated).",
+                description: "Fetch catalog playlists by IDs (comma-separated). Uses the user's storefront when available.",
                 inputSchema: .object([
                     "type": .string("object"),
                     "properties": .object([
@@ -176,7 +176,7 @@ extension ToolRegistry {
             ),
             Tool(
                 name: "get_curators",
-                description: "Fetch catalog curators by IDs (comma-separated).",
+                description: "Fetch catalog curators by IDs (comma-separated). Uses the user's storefront when available.",
                 inputSchema: .object([
                     "type": .string("object"),
                     "properties": .object([
@@ -195,7 +195,7 @@ extension ToolRegistry {
             ),
             Tool(
                 name: "get_activities",
-                description: "Fetch catalog activities by IDs (comma-separated).",
+                description: "Fetch catalog activities by IDs (comma-separated). Uses the user's storefront when available.",
                 inputSchema: .object([
                     "type": .string("object"),
                     "properties": .object([
@@ -214,7 +214,7 @@ extension ToolRegistry {
             ),
             Tool(
                 name: "get_curators",
-                description: "Fetch catalog curators by IDs (comma-separated).",
+                description: "Fetch catalog curators by IDs (comma-separated). Uses the user's storefront when available.",
                 inputSchema: .object([
                     "type": .string("object"),
                     "properties": .object([
@@ -233,7 +233,7 @@ extension ToolRegistry {
             ),
             Tool(
                 name: "get_activities",
-                description: "Fetch catalog activities by IDs (comma-separated).",
+                description: "Fetch catalog activities by IDs (comma-separated). Uses the user's storefront when available.",
                 inputSchema: .object([
                     "type": .string("object"),
                     "properties": .object([
@@ -252,7 +252,7 @@ extension ToolRegistry {
             ),
             Tool(
                 name: "get_catalog_resources",
-                description: "Fetch catalog resources by type and IDs (comma-separated).",
+                description: "Fetch catalog resources by type and IDs (comma-separated). Uses the user's storefront when available.",
                 inputSchema: .object([
                     "type": .string("object"),
                     "properties": .object([
@@ -362,7 +362,7 @@ extension ToolRegistry {
             ),
             Tool(
                 name: "get_music_videos",
-                description: "Fetch catalog music videos by IDs (comma-separated).",
+                description: "Fetch catalog music videos by IDs (comma-separated). Uses the user's storefront when available.",
                 inputSchema: .object([
                     "type": .string("object"),
                     "properties": .object([
@@ -381,7 +381,7 @@ extension ToolRegistry {
             ),
             Tool(
                 name: "get_genres",
-                description: "Fetch catalog genres for a storefront.",
+                description: "Fetch catalog genres for a storefront (uses the user's storefront when available).",
                 inputSchema: .object([
                     "type": .string("object"),
                     "properties": .object([
@@ -395,7 +395,7 @@ extension ToolRegistry {
             ),
             Tool(
                 name: "get_charts",
-                description: "Fetch charts (songs/albums/playlists) for a storefront.",
+                description: "Fetch charts (songs/albums/playlists) for a storefront (uses the user's storefront when available).",
                 inputSchema: .object([
                     "type": .string("object"),
                     "properties": .object([
@@ -421,7 +421,7 @@ extension ToolRegistry {
             ),
             Tool(
                 name: "get_stations",
-                description: "Fetch radio stations by IDs (comma-separated).",
+                description: "Fetch catalog stations by IDs (comma-separated). Uses the user's storefront when available.",
                 inputSchema: .object([
                     "type": .string("object"),
                     "properties": .object([
@@ -440,7 +440,7 @@ extension ToolRegistry {
             ),
             Tool(
                 name: "get_search_suggestions",
-                description: "Get search suggestions (kinds defaults to terms).",
+                description: "Get search suggestions (kinds defaults to terms). Uses the user's storefront when available.",
                 inputSchema: .object([
                     "type": .string("object"),
                     "properties": .object([

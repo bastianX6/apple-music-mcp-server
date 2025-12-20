@@ -29,12 +29,12 @@ A macOS-only MCP server that exposes Apple Music API operations (catalog, librar
 
 ## Configuration
 
-### Required environment variables
+### Required environment variables (developer token only)
 - `APPLE_MUSIC_TEAM_ID`
-- `APPLE_MUSIC_MUSICKIT_KEY_ID`
-- One of `APPLE_MUSIC_PRIVATE_KEY_P8` (contents) or `APPLE_MUSIC_PRIVATE_KEY_PATH` (path to .p8)
-- `APPLE_MUSIC_BUNDLE_ID` (recommended)
-- `APPLE_MUSIC_USER_TOKEN` (or present in config file)
+- `APPLE_MUSIC_MUSICKIT_ID` (or legacy `APPLE_MUSIC_MUSICKIT_KEY_ID`)
+- One of `APPLE_MUSIC_PRIVATE_KEY_P8` or `APPLE_MUSIC_PRIVATE_KEY` (contents) or `APPLE_MUSIC_PRIVATE_KEY_PATH` (path to .p8)
+
+User token is loaded exclusively from the config file written by `setup`; `APPLE_MUSIC_USER_TOKEN` is ignored.
 
 ### User token setup
 - CLI mode (persist an existing token):
@@ -50,25 +50,21 @@ A macOS-only MCP server that exposes Apple Music API operations (catalog, librar
    $HOME/.mcp/AppleMusicMCPServer/bin/AppleMusicMCPServer setup --serve --port 3000
    ```
    This opens your default browser for Apple Music authorization and writes `~/.mcp/AppleMusicMCPServer/configs/config.json` with `0600` permissions once the token is received.
-- Alternatively, place an existing user token in that config file or export `APPLE_MUSIC_USER_TOKEN`.
+- Alternatively, place an existing user token in that config file if you already have one.
 
 ### Running the server
 - Using source (dev workflow):
    ```bash
    APPLE_MUSIC_TEAM_ID="<team>" \
-   APPLE_MUSIC_MUSICKIT_KEY_ID="<kid>" \
+   APPLE_MUSIC_MUSICKIT_ID="<kid>" \
    APPLE_MUSIC_PRIVATE_KEY_PATH="/path/to/AuthKey.p8" \
-   APPLE_MUSIC_BUNDLE_ID="<bundle-id>" \
-   APPLE_MUSIC_USER_TOKEN="<user-token>" \
    swift run AppleMusicMCPServer
    ```
 - Using installed binary (after `compile.sh` or manual install):
    ```bash
    APPLE_MUSIC_TEAM_ID="<team>" \
-   APPLE_MUSIC_MUSICKIT_KEY_ID="<kid>" \
+   APPLE_MUSIC_MUSICKIT_ID="<kid>" \
    APPLE_MUSIC_PRIVATE_KEY_PATH="/path/to/AuthKey.p8" \
-   APPLE_MUSIC_BUNDLE_ID="<bundle-id>" \
-   APPLE_MUSIC_USER_TOKEN="<user-token>" \
    $HOME/.mcp/AppleMusicMCPServer/bin/AppleMusicMCPServer
    ```
 

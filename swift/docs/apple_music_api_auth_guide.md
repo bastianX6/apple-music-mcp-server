@@ -55,16 +55,15 @@ Use a helper tool that opens the default browser and leverages **MusicKit JS** f
 5) Persist the token at `~/.mcp/AppleMusicMCPServer/configs/config.json` (0600 perms).
 6) The Swift MCP server reads the token on startup.
 
-### Implementation Options
-- **Swift target** (`AppleMusicMCPSetup`):
-  - Use SwiftNIO or a lightweight HTTP server (e.g., Vapor minimal, or URLSession-backed listener) to receive the callback.
-  - Use `NSWorkspace.shared.open` to launch the browser (macOS-only).
-  - Serve a static HTML page from `Resources/SetupPage` bundled in the package.
-- **Reuse existing JS flow**: You may reuse the TypeScript CLI to produce the user token and point the Swift server to the same config file. Behavior is identical once the token exists.
+### Implementation Notes
+- Integrated setup subcommand (`AppleMusicMCPServer setup --serve`):
+  - Uses a lightweight HTTP server bound to 127.0.0.1 and opens the default browser via `NSWorkspace.shared.open` (macOS-only).
+  - Serves a static HTML page from `Resources/SetupPage` bundled in the package and posts the MusicKit token back to `/token`.
+- Reuse existing JS flow: You may reuse the TypeScript CLI to produce the user token and point the Swift server to the same config file. Behavior is identical once the token exists.
 
 ### Configuration Inputs
-- `APPLE_MUSIC_USER_TOKEN` env var (highest precedence)
-- `~/.mcp/AppleMusicMCPServer/configs/config.json` (persisted by the integrated setup helper)
+- Developer token inputs via env/config: `APPLE_MUSIC_TEAM_ID`, `APPLE_MUSIC_MUSICKIT_ID` (or legacy `APPLE_MUSIC_MUSICKIT_KEY_ID`), `APPLE_MUSIC_PRIVATE_KEY_P8` or `APPLE_MUSIC_PRIVATE_KEY` or `APPLE_MUSIC_PRIVATE_KEY_PATH`.
+- User token: `~/.mcp/AppleMusicMCPServer/configs/config.json` (persisted by the integrated setup helper). Env `APPLE_MUSIC_USER_TOKEN` is ignored.
 
 ### Request Headers
 - Attach `Music-User-Token: <userToken>` to all `/v1/me/*` and personalized endpoints.

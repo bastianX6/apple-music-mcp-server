@@ -8,11 +8,11 @@ struct ConfigLoader {
         let fileConfig = try loadFileConfig()
         return AppConfig(
             teamID: env("APPLE_MUSIC_TEAM_ID") ?? fileConfig.teamID,
-            musicKitKeyID: env("APPLE_MUSIC_MUSICKIT_KEY_ID") ?? fileConfig.musicKitKeyID,
-            privateKey: env("APPLE_MUSIC_PRIVATE_KEY_P8") ?? fileConfig.privateKey,
+            musicKitKeyID: env("APPLE_MUSIC_MUSICKIT_ID") ?? env("APPLE_MUSIC_MUSICKIT_KEY_ID") ?? fileConfig.musicKitKeyID,
+            privateKey: env("APPLE_MUSIC_PRIVATE_KEY_P8") ?? env("APPLE_MUSIC_PRIVATE_KEY") ?? fileConfig.privateKey,
             privateKeyPath: env("APPLE_MUSIC_PRIVATE_KEY_PATH") ?? fileConfig.privateKeyPath,
             bundleID: env("APPLE_MUSIC_BUNDLE_ID") ?? fileConfig.bundleID,
-            userToken: env("APPLE_MUSIC_USER_TOKEN") ?? fileConfig.userToken
+            userToken: fileConfig.userToken
         )
     }
 

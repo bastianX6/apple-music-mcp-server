@@ -57,12 +57,12 @@ apple-music-mcp-server/swift/
 ```
 
 ## Authentication Flows
-- **Developer Token**: ES256 JWT with Team ID (`iss`), MusicKit Key ID (`kid`), exp ~6 months. Cache in memory; renew when <30 days to expiry.
+- **Developer Token**: ES256 JWT with Team ID (`iss`), MusicKit ID (`kid`), exp ~6 months. Cache in memory; renew when <30 days to expiry.
 - **User Token**: Obtained via the integrated setup flow (CLI or browser) or reused from existing TypeScript flow. Stored at `~/.mcp/AppleMusicMCPServer/configs/config.json` with 0600 permissions. Read-only usage in server.
 
 ## Configuration
-- Env vars (precedence): `APPLE_MUSIC_TEAM_ID`, `APPLE_MUSIC_MUSICKIT_KEY_ID`, `APPLE_MUSIC_PRIVATE_KEY_P8` or `APPLE_MUSIC_PRIVATE_KEY_PATH`, `APPLE_MUSIC_USER_TOKEN`, `APPLE_MUSIC_BUNDLE_ID`.
-- Config file fallback: JSON with the same fields. Enforce user-only permissions.
+- Env vars (precedence): `APPLE_MUSIC_TEAM_ID`, `APPLE_MUSIC_MUSICKIT_ID` (legacy `APPLE_MUSIC_MUSICKIT_KEY_ID`), `APPLE_MUSIC_PRIVATE_KEY_P8` or `APPLE_MUSIC_PRIVATE_KEY` or `APPLE_MUSIC_PRIVATE_KEY_PATH`.
+- Config file fallback: JSON with the same fields plus the user token persisted by setup; user token is read only from the config file. Enforce user-only permissions.
 - Clear error messages when required secrets are missing; server should not crash—surface actionable MCP errors instead.
 
 ## Tool Registration Guidelines

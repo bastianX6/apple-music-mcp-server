@@ -4,7 +4,7 @@ enum AuthError: LocalizedError {
     case missingCredentials
     case missingKey
     case invalidKey
-    case signingFailed
+    case signingFailed(reason: String)
 
     var errorDescription: String? {
         switch self {
@@ -14,8 +14,8 @@ enum AuthError: LocalizedError {
             return "Developer private key is missing."
         case .invalidKey:
             return "Developer private key could not be parsed. Ensure it is a valid .p8 PEM."
-        case .signingFailed:
-            return "Failed to sign developer token."
+        case .signingFailed(let reason):
+            return "Failed to sign developer token: \(reason)"
         }
     }
 }

@@ -13,7 +13,7 @@ enum ServerError: LocalizedError {
         case .missingUserToken:
             return "User token is missing. Run the setup helper to acquire a Music-User-Token."
         case .missingDeveloperToken:
-            return "Developer token credentials are missing. Set APPLE_MUSIC_TEAM_ID, APPLE_MUSIC_MUSICKIT_KEY_ID, and private key."
+            return "Developer token credentials are missing. Set APPLE_MUSIC_TEAM_ID, APPLE_MUSIC_MUSICKIT_ID (or APPLE_MUSIC_MUSICKIT_KEY_ID), and private key."
         case .invalidConfigPermissions:
             return "Config file permissions must be 0600."
         }
