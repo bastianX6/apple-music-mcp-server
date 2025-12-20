@@ -1,6 +1,6 @@
 # Apple Music MCP Server (Swift)
 
-A macOS-only MCP server that exposes Apple Music API operations (catalog, library, recommendations, playlist management, and utility passthrough) over STDIO using the MCP Swift SDK.
+An MCP server that exposes Apple Music API operations (catalog, library, recommendations, playlist management, and utility passthrough) over STDIO using the MCP Swift SDK. Tested on macOS 13+ and Swift 6 on Linux (x86_64, swift.org toolchains).
 
 ## Installation
 
@@ -10,6 +10,7 @@ A macOS-only MCP server that exposes Apple Music API operations (catalog, librar
    bash ./compile.sh
    ```
 - The script builds `AppleMusicMCPServer` in release and installs the binary to `$HOME/.mcp/AppleMusicMCPServer/bin/AppleMusicMCPServer` (directory is created if missing).
+- On Linux, ensure the Swift toolchain (Swift 6) and basic build tools are installed; the script works the same.
 
 ### Manual installation (source-based)
 1) From the Swift package directory (repo root), build in release:
@@ -44,7 +45,7 @@ User token is loaded exclusively from the config file written by `setup`; `APPLE
    # Using the installed binary
    $HOME/.mcp/AppleMusicMCPServer/bin/AppleMusicMCPServer setup --serve --port 3000
    ```
-   This opens your default browser for Apple Music authorization and writes `~/.mcp/AppleMusicMCPServer/configs/config.json` with `0600` permissions once the token is received.
+   This opens your default browser (via `open` on macOS or `xdg-open` if available on Linux) for Apple Music authorization and writes `~/.mcp/AppleMusicMCPServer/configs/config.json` with `0600` permissions once the token is received.
 - Alternatively, place an existing user token in that config file if you already have one.
 
 ### Running the server

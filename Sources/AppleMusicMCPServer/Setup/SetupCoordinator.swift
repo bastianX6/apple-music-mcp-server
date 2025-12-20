@@ -23,8 +23,8 @@ struct SetupCoordinator {
         let config = try loadConfigForSetup()
         let developerToken = try DeveloperTokenProvider().token(using: config)
 
-        var continuation: CheckedContinuation<Void, Never>?
-        let server = try SetupServer(port: port, developerToken: developerToken) { token in
+        let tokenStream = AsyncStream<Void>.makeStream()
+        let server = SetupServer(port: port, developerToken: developerToken) { token in
             do {
                 let url = try SetupHelper.persistUserToken(token, configPath: configPath)
                 print("Saved Music-User-Token to \(url.path) with permissions 0600.")
@@ -32,15 +32,16 @@ struct SetupCoordinator {
             } catch {
                 fputs("Failed to persist user token: \(error.localizedDescription)\n", stderr)
             }
-            continuation?.resume()
+            tokenStream.continuation.yield(())
+            tokenStream.continuation.finish()
         }
 
         try server.start()
         server.openInBrowser()
         print("Listening on http://127.0.0.1:\(port) — your browser will request authorization and the token will be saved automatically.")
 
-        await withCheckedContinuation { (cont: CheckedContinuation<Void, Never>) in
-            continuation = cont
+        for await _ in tokenStream.stream {
+            break
         }
         server.stop()
     }
