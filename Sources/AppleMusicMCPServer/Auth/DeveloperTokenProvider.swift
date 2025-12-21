@@ -1,6 +1,10 @@
 import Foundation
-import SwiftJWT
+
+#if canImport(CryptoKit)
 import CryptoKit
+#elseif canImport(Crypto)
+import Crypto
+#endif
 
 struct DeveloperTokenProvider {
     private let tokenLifetime: TimeInterval = 60 * 60 * 24 * 180 // 180 days (max allowed ~6 months)
@@ -33,7 +37,8 @@ struct DeveloperTokenProvider {
             let token = signingInput + "." + base64URLEncode(signature)
             return token
         } catch {
-            fputs("Developer token signing failed: \(error.localizedDescription)\n", stderr)
+            let message = "Developer token signing failed: \(error.localizedDescription)\n"
+            FileHandle.standardError.write(Data(message.utf8))
             throw AuthError.signingFailed(reason: error.localizedDescription)
         }
     }

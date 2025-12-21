@@ -14,7 +14,8 @@ struct SetupCoordinator {
             print("Saved Music-User-Token to \(url.path) with permissions 0600.")
             print("You can now start AppleMusicMCPServer.")
         } catch {
-            fputs("Failed to persist user token: \(error.localizedDescription)\n", stderr)
+            let message = "Failed to persist user token: \(error.localizedDescription)\n"
+            FileHandle.standardError.write(Data(message.utf8))
             throw error
         }
     }
@@ -30,7 +31,8 @@ struct SetupCoordinator {
                 print("Saved Music-User-Token to \(url.path) with permissions 0600.")
                 print("You can now start AppleMusicMCPServer.")
             } catch {
-                fputs("Failed to persist user token: \(error.localizedDescription)\n", stderr)
+                let message = "Failed to persist user token: \(error.localizedDescription)\n"
+                FileHandle.standardError.write(Data(message.utf8))
             }
             tokenStream.continuation.yield(())
             tokenStream.continuation.finish()
