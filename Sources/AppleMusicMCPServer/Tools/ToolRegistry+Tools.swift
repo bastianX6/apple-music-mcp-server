@@ -446,7 +446,7 @@ extension ToolRegistry {
             ),
             Tool(
                 name: "get_catalog_resources",
-                description: "Fetch catalog resources by type and IDs. Uses the user's storefront when available.",
+                description: "Fetch catalog resources by type and IDs. Uses the user's storefront when available. Allowed types: songs, albums, artists, playlists, curators, stations, music-videos, activities, genres, record-labels.",
                 inputSchema: .object([
                     "type": .string("object"),
                     "properties": .object([
@@ -481,7 +481,7 @@ extension ToolRegistry {
             ),
             Tool(
                 name: "get_catalog_resource",
-                description: "Fetch a single catalog resource by type and ID. Uses the user's storefront when available.",
+                description: "Fetch a single catalog resource by type and ID. Uses the user's storefront when available. Allowed types: songs, albums, artists, playlists, curators, stations, music-videos, activities, genres, record-labels.",
                 inputSchema: .object([
                     "type": .string("object"),
                     "properties": .object([
@@ -516,7 +516,7 @@ extension ToolRegistry {
             ),
             Tool(
                 name: "get_catalog_relationship",
-                description: "Fetch a catalog relationship by name for a resource.",
+                description: "Fetch a catalog relationship by name for a resource. Allowed types: songs, albums, artists, playlists, curators, stations, music-videos, activities, genres, record-labels.",
                 inputSchema: .object([
                     "type": .string("object"),
                     "properties": .object([
@@ -563,7 +563,7 @@ extension ToolRegistry {
             ),
             Tool(
                 name: "get_catalog_view",
-                description: "Fetch a catalog view by name for a resource.",
+                description: "Fetch a catalog view by name for a resource. Allowed types: songs, albums, artists, playlists, curators, stations, music-videos, activities, genres, record-labels.",
                 inputSchema: .object([
                     "type": .string("object"),
                     "properties": .object([
@@ -610,7 +610,7 @@ extension ToolRegistry {
             ),
             Tool(
                 name: "get_catalog_multi_by_type_ids",
-                description: "Fetch multiple catalog resources using resource-typed ID parameters.",
+                description: "Fetch multiple catalog resources using resource-typed ID parameters. Allowed keys inside ids: songs, albums, artists, playlists, curators, stations, music-videos, activities, genres, record-labels.",
                 inputSchema: .object([
                     "type": .string("object"),
                     "properties": .object([
@@ -779,7 +779,7 @@ extension ToolRegistry {
             ),
             Tool(
                 name: "get_library_resources",
-                description: "Fetch library resources by type and optional IDs (requires Music-User-Token).",
+                description: "Fetch library resources by type and optional IDs (requires Music-User-Token). Allowed types: songs, albums, artists, playlists, playlist-folders, music-videos.",
                 inputSchema: .object([
                     "type": .string("object"),
                     "properties": .object([
@@ -822,7 +822,7 @@ extension ToolRegistry {
             ),
             Tool(
                 name: "get_library_resource",
-                description: "Fetch a single library resource by type and ID (requires Music-User-Token).",
+                description: "Fetch a single library resource by type and ID (requires Music-User-Token). Allowed types: songs, albums, artists, playlists, playlist-folders, music-videos.",
                 inputSchema: .object([
                     "type": .string("object"),
                     "properties": .object([
@@ -853,7 +853,7 @@ extension ToolRegistry {
             ),
             Tool(
                 name: "get_library_relationship",
-                description: "Fetch a library relationship by name for a resource (requires Music-User-Token).",
+                description: "Fetch a library relationship by name for a resource (requires Music-User-Token). Allowed types: songs, albums, artists, playlists, playlist-folders, music-videos.",
                 inputSchema: .object([
                     "type": .string("object"),
                     "properties": .object([
@@ -896,7 +896,7 @@ extension ToolRegistry {
             ),
             Tool(
                 name: "get_library_multi_by_type_ids",
-                description: "Fetch multiple library resources using resource-typed ID parameters (requires Music-User-Token).",
+                description: "Fetch multiple library resources using resource-typed ID parameters (requires Music-User-Token). Allowed keys inside ids: library-songs, library-albums, library-artists, library-playlists, library-playlist-folders, library-music-videos.",
                 inputSchema: .object([
                     "type": .string("object"),
                     "properties": .object([
