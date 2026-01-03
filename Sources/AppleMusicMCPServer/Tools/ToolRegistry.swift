@@ -96,6 +96,62 @@ enum StorefrontResolution {
     }
 }
 
+extension ToolRegistry {
+    func requireUserToken() -> CallTool.Result? {
+        guard client.userToken != nil else {
+            return CallTool.Result(
+                content: [.text("User token is missing. Run the setup helper to acquire a Music-User-Token.")],
+                isError: true
+            )
+        }
+        return nil
+    }
+
+    func stringList(from value: Value) -> [String] {
+        if let stringValue = value.stringValue {
+            return stringValue
+                .split(separator: ",")
+                .map { String($0).trimmingCharacters(in: .whitespacesAndNewlines) }
+                .filter { !$0.isEmpty }
+        }
+        if let intValue = value.intValue {
+            return [String(intValue)]
+        }
+        if let doubleValue = value.doubleValue {
+            return [String(doubleValue)]
+        }
+        if let boolValue = value.boolValue {
+            return [boolValue ? "true" : "false"]
+        }
+        if let arrayValue = value.arrayValue {
+            return arrayValue.flatMap { stringList(from: $0) }
+        }
+        return []
+    }
+
+    func queryItem(named name: String, from value: Value) -> URLQueryItem? {
+        let values = stringList(from: value)
+        guard !values.isEmpty else { return nil }
+        return URLQueryItem(name: name, value: values.joined(separator: ","))
+    }
+
+    func optionalQueryItems(from params: CallTool.Parameters, allowed keys: [String]) -> [URLQueryItem] {
+        guard let arguments = params.arguments else { return [] }
+        return keys.compactMap { key in
+            guard let value = arguments[key] else { return nil }
+            return queryItem(named: key, from: value)
+        }
+    }
+
+    func idsQueryItems(from value: Value, prefix: String = "ids") -> [URLQueryItem] {
+        guard let object = value.objectValue else { return [] }
+        return object.sorted { $0.key < $1.key }.compactMap { key, itemValue in
+            guard let queryItem = queryItem(named: "\(prefix)[\(key)]", from: itemValue) else { return nil }
+            return queryItem
+        }
+    }
+}
+
 actor StorefrontResolver {
     enum Error: Swift.Error, LocalizedError {
         case missingStorefront

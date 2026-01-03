@@ -1,72 +1,57 @@
 # Apple Music API Known Limitations (Swift MCP Server)
 
-This document records API constraints observed while testing the TypeScript MCP server and applies them to the forthcoming Swift implementation. The behavior is API-level, not language-specific; the Swift server will inherit the same limitations.
+This document captures observed Apple Music API constraints and availability notes. It complements the full endpoint list in `docs/apple_music_api_endpoints.md` and the hybrid tool surface in `docs/hybrid_tool_spec.md`.
 
 ## Scope
-- Target: Swift Package Manager command-line MCP server (macOS-only)
-- SDK: https://github.com/modelcontextprotocol/swift-sdk
-- Status source: Testing results from the TypeScript implementation (30 tools)
+- Target: Swift Package Manager MCP server (macOS and Linux toolchains)
+- Source: Apple documentation + observed behavior from MCP tool testing
+- Note: Limitations are API-level and apply regardless of language
 
-## Testing Results Snapshot
-- Total tools: 30
-- Tested: 30/30 (100%)
-- Working: 24/30 (80%)
-- Failed (API limitations): 6/30 (20%)
-- Core features (library + catalog + user context + utility): 19/19 (100%)
+## Write Operations Commonly Returning 405
+These endpoints are documented but frequently return 405 for common resource types.
 
-### Category Breakdown
-- Library Management: 5/5 ✅
-- Catalog Tools: 9/9 ✅
-- User Context: 4/4 ✅
-- Utility: 1/1 ✅
-- Write Operations: 2/5 ⚠️ (405)
-- Recommendations: 1/2 ⚠️
-- Editorial Content: 1/4 ⚠️
+1) Add a resource to library — POST `/v1/me/library` — often 405 for songs/albums.
+2) Add resource to favorites — POST `/v1/me/favorites` — often 405.
 
-## Write Operations Returning 405
-These endpoints are blocked by Apple Music; Swift transport and signing do not change the outcome.
+**Workarounds:** none known. Tools should surface explicit limitation errors and avoid retries.
 
-1) Add Songs to Library — POST /v1/me/library/songs — 405 Method Not Allowed
-2) Add Albums to Library — POST /v1/me/library/albums — 405 Method Not Allowed
-3) Add to Favorites — POST /v1/me/favorites/{resourceType} — 405 Method Not Allowed
+## Replay Data Availability
+- Replay is documented at GET `/v1/me/music-summaries`.
+- Availability varies by account and region; responses may be empty or return 404.
+- Fallback: use recent playback endpoints if replay data is unavailable.
 
-**Workarounds:** None. Keep tool descriptions explicit about the limitation; surface clear MCP errors.
+## Editorial Content and IDs
+- Activities and curators require valid IDs; generic listing is empty or 400.
+- Search suggestions require `kinds` (use `terms` as default) to avoid empty responses.
 
-## Editorial Content Restrictions
-- Activities — GET /v1/catalog/{storefront}/activities — requires valid activity IDs; generic listing returns empty/400.
-- Curators — GET /v1/catalog/{storefront}/curators — returns empty arrays for invalid IDs; requires valid curator IDs.
-- Search Suggestions — GET /v1/catalog/{storefront}/search/suggestions — requires `kinds` (use `terms` default) to avoid empty responses.
+## Record Labels and Radio Shows
+- Record labels are documented but often return 404 or empty data in practice.
+- Radio shows are represented via station relationships (`radio-show`) and can be missing in many storefronts.
+- Treat these endpoints as best-effort and document their availability clearly.
 
-## Non-Existent or Unavailable Endpoints
-- Replay Data — GET /v1/me/replay — 404; not exposed publicly.
-- Radio Shows — GET /v1/catalog/{storefront}/radio-shows/{id} — 404/resource type invalid; use stations instead.
-- Record Labels — GET /v1/catalog/{storefront}/record-labels/{id} — labels exist as strings on albums; not queryable resources.
+## Ratings
+- Ratings endpoints require a Music-User-Token.
+- Values are limited to like/dislike.
+- Behavior varies by account; validate in your target environment.
 
 ## Regional Variations
-Content availability is storefront-dependent (activities, stations, music videos, some artists). The Swift server should:
-- Fetch user storefront via /v1/me/storefront (user token) and default catalog calls to that value.
+Content availability is storefront-dependent (activities, stations, music videos, some artists). The server should:
+- Resolve the user storefront via `/v1/me/storefront` when available.
 - Fail gracefully with region-specific messaging when data is absent.
 
-## Verified Working Operations
-- Library: playlists, songs, albums, recently played (pagination works).
-- Catalog: songs, albums, artists, playlists, music videos, genres, charts, stations, search.
-- Playlist management: create playlist; add items to playlist.
-- Recommendations: personalized mixes; heavy rotation.
-- User context: storefront; listening history.
-- Utility: generic request passthrough.
+## Verified Working Operations (as observed)
+- Catalog: search, songs, albums, artists, playlists, music videos, charts, genres, stations.
+- Library: playlists, songs, albums, artists, recently played.
+- Playlist management: create playlist; add tracks.
+- Recommendations: personalized mixes and heavy rotation.
+- Utility: generic passthrough GET.
 
-## Implementation Notes for Swift
-- These limitations must be reflected in tool metadata (`destructiveHint=false`, clear failure reasons) when registering MCP tools via the Swift SDK.
-- Tests should assert the documented 405/404 behaviors to prevent regressions in error messaging and retry logic.
-- Do not attempt client-side retries for 405/404 responses; they are structural, not transient.
-
-## Production Guidance
-1) Document required parameters (e.g., `kinds` for suggestions) directly in tool schemas.
-2) Keep an updated registry of editorial IDs (activities, curators, stations) and rotate as Apple changes content.
-3) Cache stable data (genres, storefront, charts) with short TTL to reduce rate limits.
-4) For user-facing messaging, clarify that missing functionality is due to Apple Music API restrictions, not server defects.
+## Implementation Notes
+- Reflect 404/405 limitations in tool descriptions and errors.
+- Do not retry 404/405 responses.
+- Keep validation for required params to avoid silent empty responses.
 
 ## References
 - Apple Music API docs: https://developer.apple.com/documentation/applemusicapi
-- MusicKit JS docs (for user-token acquisition): https://developer.apple.com/documentation/musickitjs
+- MusicKit JS docs (user-token acquisition): https://developer.apple.com/documentation/musickitjs
 - MCP Swift SDK: https://github.com/modelcontextprotocol/swift-sdk

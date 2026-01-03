@@ -82,37 +82,18 @@ From the Swift package directory (repo root):
 swift test
 ```
 
-## Endpoint to Tool Mapping
+## Tool Surface (Hybrid)
 
-| Endpoint | Tool |
-| --- | --- |
-| GET /v1/catalog/{storefront}/search | search_catalog |
-| GET /v1/catalog/{storefront}/search/suggestions | get_search_suggestions |
-| GET /v1/catalog/{storefront}/songs | get_catalog_songs |
-| GET /v1/catalog/{storefront}/albums | get_catalog_albums |
-| GET /v1/catalog/{storefront}/artists | get_catalog_artists |
-| GET /v1/catalog/{storefront}/playlists | get_catalog_playlists |
-| GET /v1/catalog/{storefront}/curators | get_curators |
-| GET /v1/catalog/{storefront}/radio-shows | get_radio_shows |
-| GET /v1/catalog/{storefront}/music-videos | get_music_videos |
-| GET /v1/catalog/{storefront}/genres | get_genres |
-| GET /v1/catalog/{storefront}/stations | get_stations |
-| GET /v1/catalog/{storefront}/charts | get_charts |
-| GET /v1/catalog/{storefront}/activities | get_activities |
-| GET /v1/catalog/{storefront}/record-labels | get_record_labels |
-| GET /v1/catalog/{storefront}/{type} | get_catalog_resources |
-| GET /v1/me/library/playlists | get_library_playlists |
-| GET /v1/me/library/songs | get_library_songs |
-| GET /v1/me/library/albums | get_library_albums |
-| GET /v1/me/library/artists | get_library_artists |
-| GET /v1/me/library/{type} | get_library_resources |
-| GET /v1/me/recent/played | get_recently_played |
-| GET /v1/me/recommendations | get_recommendations |
-| GET /v1/me/replay/{year} | get_replay |
-| POST /v1/me/library/playlists | create_playlist |
-| POST /v1/me/library/playlists/{playlistId}/tracks | add_playlist_tracks |
-| POST /v1/me/library/songs | add_library_songs |
-| POST /v1/me/library/albums | add_library_albums |
-| POST /v1/me/favorites/{resourceType} | add_favorites |
-| GET /v1/me/storefront | get_user_storefront |
-| GET /v1/{endpoint} (passthrough) | generic_get |
+The repo is migrating to a hybrid tool surface that balances LLM-friendly selection with full API coverage.
+
+Sources of truth:
+- `docs/hybrid_tool_spec.md` for the intended tool surface.
+- `docs/hybrid_tool_endpoint_mapping.md` for the full endpoint-to-tool mapping.
+- `docs/apple_music_api_endpoints.md` for the Apple Music API endpoint list derived from Apple documentation.
+- `docs/API_LIMITATIONS.md` for known API constraints and 404/405 behavior.
+- `docs/hybrid_tool_smoke_prompts.md` for explicit smoke-test prompts.
+
+Guidance:
+- Use intent-based tools (search, charts, catalog lookups, library lists, recommendations, playlist management) for common workflows.
+- Use generic tools for relationships, views, and typed-id queries.
+- Keep `generic_get` only as a fallback for new or unmapped endpoints.

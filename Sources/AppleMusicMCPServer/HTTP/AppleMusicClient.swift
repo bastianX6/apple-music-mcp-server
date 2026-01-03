@@ -29,8 +29,16 @@ struct AppleMusicClient: AppleMusicClientProtocol {
         try await request(method: "GET", path: path, queryItems: queryItems, body: nil)
     }
 
-    func post(path: String, body: Data?) async throws -> Data {
-        try await request(method: "POST", path: path, queryItems: [], body: body)
+    func post(path: String, queryItems: [URLQueryItem] = [], body: Data?) async throws -> Data {
+        try await request(method: "POST", path: path, queryItems: queryItems, body: body)
+    }
+
+    func put(path: String, queryItems: [URLQueryItem] = [], body: Data?) async throws -> Data {
+        try await request(method: "PUT", path: path, queryItems: queryItems, body: body)
+    }
+
+    func delete(path: String, queryItems: [URLQueryItem] = []) async throws -> Data {
+        try await request(method: "DELETE", path: path, queryItems: queryItems, body: nil)
     }
 
     private func request(method: String, path: String, queryItems: [URLQueryItem], body: Data?) async throws -> Data {

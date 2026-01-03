@@ -1,64 +1,35 @@
-# Apple Music API Elements for Swift MCP Server
+# Apple Music API Investigation (Hybrid Tool Surface)
 
 ## Executive Summary
-The Swift MCP server will expose 30 tools over MCP, backed by Apple Music REST endpoints. The API behavior matches the TypeScript implementation; language changes do not alter HTTP behavior. This document highlights the key data elements and Swift-specific considerations for building a macOS-only package.
+The Apple Music API exposes a large, structured REST surface. This repo is moving to a hybrid MCP tool design: intent-based tools for common workflows plus a small set of generic tools that cover relationships, views, and typed-id queries. The full endpoint list lives in `docs/apple_music_api_endpoints.md`.
 
-## Core Elements (Swift Data Model Focus)
-Define lightweight Swift structs to mirror Apple Music responses. Critical building blocks:
-- `MusicItemID`: Typed identifier for catalog/library resources.
-- `MusicItem` base struct: common attributes (id, type, href, attributes, relationships).
-- `MusicItemCollection<T>`: Paginated collections with `meta` and `next` links.
-- Request wrappers: `CatalogRequest` and `LibraryRequest` capturing storefront, ids, pagination, filters.
-- Generic passthrough: `DataRequest` for unsupported/experimental endpoints.
+## Core Findings
+- The API is heavily patterned by resource type, relationship, and view endpoints.
+- Catalog endpoints are storefront-scoped; user endpoints are under `/v1/me` and require a Music-User-Token.
+- Optional parameters like `include`, `extend`, `l`, `limit`, `offset`, and `views` appear across many endpoints.
 
-### Critical Capabilities (13)
-- Catalog search & suggestions
-- Generic catalog resource fetch (songs, albums, artists, playlists)
-- Generic data fetch (escape hatch)
-- Library playlists, songs, albums
-- Playlist creation and add-items
-- Addable protocols: library-addable, playlist-addable (surface capability metadata)
+## Tool Strategy
+- **Intent tools** for search, charts, catalog lookups, library lists, recently played, recommendations, and playlist management.
+- **Generic tools** to cover:
+  - Catalog resources by type/ids
+  - Catalog relationships (`/{relationship}`) and views (`/view/{view}`)
+  - Library resources and relationships
+  - Multi-type typed-id fetches for catalog/library
+- **Fallback**: `generic_get` for unmapped endpoints only.
 
-### High-Potential Additions (Selected)
-- Recommendations and recently played
-- Charts (Top/City) and genres
-- Stations (radio)
-- Audio variants (Atmos/Lossless flags) in metadata
-- Editorial notes and artwork color palettes
+See `docs/hybrid_tool_spec.md` for the proposed tool surface and `docs/hybrid_tool_endpoint_mapping.md` for full coverage.
 
-## Functional Categories
-- **Search & Discovery**: catalog search, suggestions, charts, stations, activities, curators.
-- **Personal Library**: playlists, songs, albums, artists, recently played.
-- **Recommendations**: personalized mixes and heavy rotation.
-- **Playlist Management**: create playlist, add items (library), add songs/albums (subject to 405 limitation).
-- **Utility**: generic request passthrough for rapid feature unlocks.
+## Data Modeling Notes
+- Use lightweight resource wrappers (`id`, `type`, `href`, `attributes`, `relationships`).
+- Preserve raw JSON for unmodeled attributes to avoid breakage as Apple adds fields.
+- Keep artwork templates with `{w}`/`{h}` placeholders intact.
 
-## Swift-Specific Implementation Notes
-- **Async HTTP**: Use `URLSession` with async/await; set `Accept` and `Content-Type` to `application/json`.
-- **Headers**: `Authorization: Bearer <developerToken>` for catalog; `Music-User-Token: <userToken>` for library/personal endpoints.
-- **Pagination**: Model `next` URLs and expose `offset`/`limit` inputs; return `meta.total` when present.
-- **Error Modeling**: Decode Apple Music error payloads (`errors: [{id, status, code, title, detail}]`); propagate status and title back through MCP structured errors.
-- **Date Handling**: Use ISO 8601 with fractional seconds for history timestamps.
-- **Artwork Templates**: Keep `{w}`/`{h}` placeholders intact for clients to substitute.
+## Known Constraints
+- Add-to-library and favorites endpoints often return 405.
+- Replay data (`/v1/me/music-summaries`) may be unavailable depending on account/region.
+- Editorial resources (activities/curators/record labels/radio shows) require valid IDs and are often storefront-dependent.
 
-## Platform & SDK Constraints
-- Package must target **macOS only** (set `.macOS(.v13)` or newer in `Package.swift`).
-- MCP transport: STDIO via `MCPServer` from the Swift SDK (https://github.com/modelcontextprotocol/swift-sdk).
-- No reliance on iOS-only frameworks; restrict to Foundation, CryptoKit, and standard macOS APIs.
-
-## Extensibility Strategy
-- Use a `GenericRequestTool` that accepts method, path, params, and headers (validated) to cover new endpoints without changing the binary.
-- Keep data models loosely typed: prefer `Decodable` wrappers with `RawJSON` storage for unmodeled attributes to avoid breakage when Apple adds fields.
-- Introduce feature flags for endpoints with known gaps (replay data, radio shows, record labels) to keep UX explicit.
-
-## Testing Considerations
-- Unit tests for token generation (ES256), config loading, header injection, and pagination parsing.
-- Integration tests with mocked Apple Music responses (using `URLProtocol` stubs or custom `URLSession` configuration).
-- Golden file tests for representative catalog and library payloads to ensure decoding stability.
-
-## Conclusion
-The Swift MCP server reuses the same Apple Music surface area as the TypeScript version. Focus on:
-- Robust auth handling (developer token generation; user token ingestion).
-- Thin, predictable HTTP client with strong error propagation.
-- Clear tool metadata for endpoints that are limited, regional, or unavailable.
-- MacOS-only packaging and test targets aligned with the SPM layout.
+## References
+- Apple Music API docs: https://developer.apple.com/documentation/applemusicapi
+- Endpoint list: `docs/apple_music_api_endpoints.md`
+- Hybrid tools: `docs/hybrid_tool_spec.md`

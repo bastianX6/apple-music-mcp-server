@@ -1,7 +1,8 @@
 # AGENTS GUIDE
 
 ## What this project is
-- Apple Music MCP server implemented in Swift (mirrors a TypeScript version) exposing Apple Music API tools via MCP.
+- Apple Music MCP server implemented in Swift (based on a TypeScript version) exposing Apple Music API tools via MCP.
+- Tool surface is migrating to a hybrid model for full endpoint coverage (see `docs/hybrid_tool_spec.md`).
 - Uses Developer Token + Music User Token to access catalog and user endpoints.
 
 ## How to run
@@ -14,8 +15,9 @@
 ## Key behaviors / limitations
 - Library read endpoints work (playlists, songs, albums, artists, recently played, recommendations, heavy rotation).
 - Catalog lookups and search work (songs, albums, artists, playlists, genres, charts, music videos, stations).
-- Write limits: add-to-library and favorites return HTTP 405 (Apple restriction).
-- Replay/"top listened" endpoints do not exist; use recently played as approximation only.
+- Write limits: add-to-library and favorites often return HTTP 405 (Apple restriction).
+- Replay data uses `/v1/me/music-summaries` but availability varies; fall back to recent playback when missing.
+- Record labels and radio-show relationships are documented but often return 404/empty; treat as best-effort.
 - Region-dependent: default to user storefront when available; otherwise `us`.
 
 ## Token handling
@@ -31,6 +33,8 @@
 
 ## Testing
 - SwiftPM tests under `Tests/AppleMusicMCPServerTests/`.
+- Always run tests using `swift test --disable-sandbox` (confirmed working).
+- Note: `swift --disable-sandbox test` is not a valid invocation.
 
 ## Safety notes for LLMs
 - Never commit secrets (p8 keys, tokens). Accept one-line or multiline PEMs when constructing dev tokens.

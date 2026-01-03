@@ -111,8 +111,8 @@ final class PlaceholderTests: XCTestCase {
         XCTAssertTrue(message.contains("User token is missing"))
     }
 
-    func testAddLibrarySongsReturns405Message() async throws {
-        let client = AppleMusicClient(developerToken: "dev", userToken: "user")
+    func testAddLibrarySongsRequiresUserToken() async throws {
+        let client = AppleMusicClient(developerToken: "dev", userToken: nil)
         let registry = ToolRegistry(client: client)
         let params = CallTool.Parameters(name: "add_library_songs", arguments: ["ids": .string("123")])
 
@@ -122,7 +122,7 @@ final class PlaceholderTests: XCTestCase {
             if case let .text(text) = content { return text }
             return nil
         }.joined(separator: "\n")
-        XCTAssertTrue(message.contains("405"))
+        XCTAssertTrue(message.contains("User token is missing"))
     }
 
     func testReplayReturnsNotAvailable() async throws {

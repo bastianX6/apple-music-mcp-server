@@ -9,14 +9,30 @@ final class ToolRegistryTests: XCTestCase {
         var lastGetPath: String?
         var lastGetQueryItems: [URLQueryItem] = []
         var lastPostPath: String?
+        var lastPostQueryItems: [URLQueryItem] = []
         var lastPostBody: Data?
+        var lastPutPath: String?
+        var lastPutQueryItems: [URLQueryItem] = []
+        var lastPutBody: Data?
+        var lastDeletePath: String?
+        var lastDeleteQueryItems: [URLQueryItem] = []
         var getResponse: Data
         var postResponse: Data
+        var putResponse: Data
+        var deleteResponse: Data
 
-        init(userToken: String?, getResponse: Data = "{\"ok\":true}".data(using: .utf8)!, postResponse: Data? = nil) {
+        init(
+            userToken: String?,
+            getResponse: Data = "{\"ok\":true}".data(using: .utf8)!,
+            postResponse: Data? = nil,
+            putResponse: Data? = nil,
+            deleteResponse: Data? = nil
+        ) {
             self.userToken = userToken
             self.getResponse = getResponse
             self.postResponse = postResponse ?? getResponse
+            self.putResponse = putResponse ?? getResponse
+            self.deleteResponse = deleteResponse ?? getResponse
         }
 
         func get(path: String, queryItems: [URLQueryItem]) async throws -> Data {
@@ -28,10 +44,24 @@ final class ToolRegistryTests: XCTestCase {
             return getResponse
         }
 
-        func post(path: String, body: Data?) async throws -> Data {
+        func post(path: String, queryItems: [URLQueryItem], body: Data?) async throws -> Data {
             lastPostPath = path
+            lastPostQueryItems = queryItems
             lastPostBody = body
             return postResponse
+        }
+
+        func put(path: String, queryItems: [URLQueryItem], body: Data?) async throws -> Data {
+            lastPutPath = path
+            lastPutQueryItems = queryItems
+            lastPutBody = body
+            return putResponse
+        }
+
+        func delete(path: String, queryItems: [URLQueryItem]) async throws -> Data {
+            lastDeletePath = path
+            lastDeleteQueryItems = queryItems
+            return deleteResponse
         }
     }
 
@@ -234,14 +264,18 @@ final class ToolRegistryTests: XCTestCase {
         XCTAssertTrue(text(result).contains("User token is missing"))
     }
 
-    func testLibraryResourcesRequiresIds() async throws {
-        let (registry, _) = makeRegistry(userToken: "user")
-        let params = CallTool.Parameters(name: "get_library_resources", arguments: ["type": .string("songs")])
+    func testLibraryResourcesAllowsFilterIdentity() async throws {
+        let (registry, stub) = makeRegistry(userToken: "user")
+        let params = CallTool.Parameters(name: "get_library_resources", arguments: [
+            "type": .string("playlist-folders"),
+            "filter[identity]": .string("playlistsroot")
+        ])
 
         let result = try await registry.handleGetLibraryResources(params: params)
 
-        XCTAssertEqual(result.isError, true)
-        XCTAssertTrue(text(result).contains("Missing required argument 'ids'."))
+        XCTAssertEqual(result.isError, false)
+        XCTAssertEqual(stub.lastGetPath, "v1/me/library/playlist-folders")
+        XCTAssertEqual(queryDict(stub.lastGetQueryItems)["filter[identity]"], "playlistsroot")
     }
 
     func testRecentlyPlayedRequiresUserToken() async throws {
@@ -370,23 +404,173 @@ final class ToolRegistryTests: XCTestCase {
         XCTAssertEqual(data?.compactMap { $0["id"] as? String }, ["1", "2", "3"])
     }
 
-    func testAddLibraryAlbumsReturnsMessage() async throws {
-        let (registry, _) = makeRegistry(userToken: "user")
-        let params = CallTool.Parameters(name: "add_library_albums")
+    func testAddLibraryAlbumsPostsIds() async throws {
+        let (registry, stub) = makeRegistry(userToken: "user")
+        let params = CallTool.Parameters(name: "add_library_albums", arguments: ["ids": .string("1,2")])
 
         let result = try await registry.handleAddLibraryAlbums(params: params)
 
-        XCTAssertEqual(result.isError, true)
-        XCTAssertTrue(text(result).contains("405"))
+        XCTAssertEqual(result.isError, false)
+        XCTAssertEqual(stub.lastPostPath, "v1/me/library")
+        XCTAssertEqual(queryDict(stub.lastPostQueryItems)["ids[albums]"], "1,2")
     }
 
-    func testAddFavoritesReturnsMessage() async throws {
-        let (registry, _) = makeRegistry(userToken: "user")
-        let params = CallTool.Parameters(name: "add_favorites")
+    func testAddFavoritesUsesResourceType() async throws {
+        let (registry, stub) = makeRegistry(userToken: "user")
+        let params = CallTool.Parameters(name: "add_favorites", arguments: [
+            "resourceType": .string("songs"),
+            "ids": .string("123,456")
+        ])
 
         let result = try await registry.handleAddFavorites(params: params)
 
+        XCTAssertEqual(result.isError, false)
+        XCTAssertEqual(stub.lastPostPath, "v1/me/favorites")
+        XCTAssertEqual(queryDict(stub.lastPostQueryItems)["ids[songs]"], "123,456")
+    }
+
+    func testCatalogMultiByTypeIdsBuildsQueryItems() async throws {
+        let (registry, stub) = makeRegistry()
+        let params = CallTool.Parameters(name: "get_catalog_multi_by_type_ids", arguments: [
+            "ids": .object([
+                "songs": .string("1,2"),
+                "albums": .string("3")
+            ])
+        ])
+
+        let result = try await registry.handleGetCatalogMultiByTypeIds(params: params)
+
+        XCTAssertEqual(result.isError, false)
+        XCTAssertEqual(stub.lastGetPath, "v1/catalog/us")
+        let dict = queryDict(stub.lastGetQueryItems)
+        XCTAssertEqual(dict["ids[albums]"], "3")
+        XCTAssertEqual(dict["ids[songs]"], "1,2")
+    }
+
+    func testLibraryMultiByTypeIdsBuildsQueryItems() async throws {
+        let (registry, stub) = makeRegistry(userToken: "user")
+        let params = CallTool.Parameters(name: "get_library_multi_by_type_ids", arguments: [
+            "ids": .object([
+                "library-songs": .string("abc")
+            ])
+        ])
+
+        let result = try await registry.handleGetLibraryMultiByTypeIds(params: params)
+
+        XCTAssertEqual(result.isError, false)
+        XCTAssertEqual(stub.lastGetPath, "v1/me/library")
+        XCTAssertEqual(queryDict(stub.lastGetQueryItems)["ids[library-songs]"], "abc")
+    }
+
+    func testLibrarySearchCapsLimit() async throws {
+        let (registry, stub) = makeRegistry(userToken: "user")
+        let params = CallTool.Parameters(name: "library_search", arguments: [
+            "term": .string("focus"),
+            "types": .string("library-songs"),
+            "limit": .int(50)
+        ])
+
+        let result = try await registry.handleLibrarySearch(params: params)
+
+        XCTAssertEqual(result.isError, false)
+        XCTAssertEqual(stub.lastGetPath, "v1/me/library/search")
+        XCTAssertEqual(queryDict(stub.lastGetQueryItems)["limit"], "25")
+    }
+
+    func testRecentlyPlayedTracksPath() async throws {
+        let (registry, stub) = makeRegistry(userToken: "user")
+        let params = CallTool.Parameters(name: "get_recently_played_tracks", arguments: [
+            "limit": .int(5)
+        ])
+
+        let result = try await registry.handleGetRecentlyPlayedTracks(params: params)
+
+        XCTAssertEqual(result.isError, false)
+        XCTAssertEqual(stub.lastGetPath, "v1/me/recent/played/tracks")
+        XCTAssertEqual(queryDict(stub.lastGetQueryItems)["limit"], "5")
+    }
+
+    func testRecommendationRelationshipPath() async throws {
+        let (registry, stub) = makeRegistry(userToken: "user")
+        let params = CallTool.Parameters(name: "get_recommendation_relationship", arguments: [
+            "id": .string("reco-1"),
+            "relationship": .string("contents")
+        ])
+
+        let result = try await registry.handleGetRecommendationRelationship(params: params)
+
+        XCTAssertEqual(result.isError, false)
+        XCTAssertEqual(stub.lastGetPath, "v1/me/recommendations/reco-1/contents")
+    }
+
+    func testReplayDataRequiresYear() async throws {
+        let (registry, _) = makeRegistry(userToken: "user")
+        let params = CallTool.Parameters(name: "get_replay_data")
+
+        let result = try await registry.handleGetReplayData(params: params)
+
         XCTAssertEqual(result.isError, true)
-        XCTAssertTrue(text(result).contains("405"))
+        XCTAssertTrue(text(result).contains("filter[year]"))
+    }
+
+    func testCreatePlaylistFolderPostsBody() async throws {
+        let (registry, stub) = makeRegistry(userToken: "user")
+        let params = CallTool.Parameters(name: "create_playlist_folder", arguments: [
+            "name": .string("New Folder")
+        ])
+
+        let result = try await registry.handleCreatePlaylistFolder(params: params)
+
+        XCTAssertEqual(result.isError, false)
+        XCTAssertEqual(stub.lastPostPath, "v1/me/library/playlist-folders")
+        let body = try XCTUnwrap(stub.lastPostBody)
+        let json = try JSONSerialization.jsonObject(with: body, options: []) as? [String: Any]
+        let attributes = json?["attributes"] as? [String: Any]
+        XCTAssertEqual(attributes?["name"] as? String, "New Folder")
+    }
+
+    func testSetRatingUsesPut() async throws {
+        let (registry, stub) = makeRegistry(userToken: "user")
+        let params = CallTool.Parameters(name: "set_rating", arguments: [
+            "resourceType": .string("songs"),
+            "id": .string("123"),
+            "value": .int(1)
+        ])
+
+        let result = try await registry.handleSetRating(params: params)
+
+        XCTAssertEqual(result.isError, false)
+        XCTAssertEqual(stub.lastPutPath, "v1/me/ratings/songs/123")
+        let body = try XCTUnwrap(stub.lastPutBody)
+        let json = try JSONSerialization.jsonObject(with: body, options: []) as? [String: Any]
+        let attributes = json?["attributes"] as? [String: Any]
+        XCTAssertEqual(attributes?["value"] as? Int, 1)
+    }
+
+    func testDeleteRatingUsesDelete() async throws {
+        let (registry, stub) = makeRegistry(userToken: "user")
+        let params = CallTool.Parameters(name: "delete_rating", arguments: [
+            "resourceType": .string("songs"),
+            "id": .string("123")
+        ])
+
+        let result = try await registry.handleDeleteRating(params: params)
+
+        XCTAssertEqual(result.isError, false)
+        XCTAssertEqual(stub.lastDeletePath, "v1/me/ratings/songs/123")
+    }
+
+    func testBestLanguageTagUsesAcceptLanguage() async throws {
+        let (registry, stub) = makeRegistry()
+        let params = CallTool.Parameters(name: "get_best_language_tag", arguments: [
+            "storefront": .string("us"),
+            "acceptLanguage": .string("es-ES")
+        ])
+
+        let result = try await registry.handleGetBestLanguageTag(params: params)
+
+        XCTAssertEqual(result.isError, false)
+        XCTAssertEqual(stub.lastGetPath, "v1/language/us/tag")
+        XCTAssertEqual(queryDict(stub.lastGetQueryItems)["acceptLanguage"], "es-ES")
     }
 }

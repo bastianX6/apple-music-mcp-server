@@ -3,22 +3,18 @@ import MCP
 
 extension ToolRegistry {
     func handleGetLibraryPlaylists(params: CallTool.Parameters) async throws -> CallTool.Result {
-        guard client.userToken != nil else {
-            return CallTool.Result(
-                content: [.text("User token is missing. Run the setup helper to acquire a Music-User-Token.")],
-                isError: true
-            )
-        }
+        if let errorResult = requireUserToken() { return errorResult }
 
         let limit = params.arguments?["limit"]?.intValue ?? 25
         let offset = params.arguments?["offset"]?.intValue ?? 0
         let cappedLimit = max(1, min(limit, 100))
         let cappedOffset = max(0, offset)
 
-        let queryItems: [URLQueryItem] = [
+        var queryItems: [URLQueryItem] = [
             URLQueryItem(name: "limit", value: String(cappedLimit)),
             URLQueryItem(name: "offset", value: String(cappedOffset))
         ]
+        queryItems.append(contentsOf: optionalQueryItems(from: params, allowed: ["include", "extend", "l"]))
 
         do {
             let data = try await client.get(path: "v1/me/library/playlists", queryItems: queryItems)
@@ -30,22 +26,18 @@ extension ToolRegistry {
     }
 
     func handleGetLibrarySongs(params: CallTool.Parameters) async throws -> CallTool.Result {
-        guard client.userToken != nil else {
-            return CallTool.Result(
-                content: [.text("User token is missing. Run the setup helper to acquire a Music-User-Token.")],
-                isError: true
-            )
-        }
+        if let errorResult = requireUserToken() { return errorResult }
 
         let limit = params.arguments?["limit"]?.intValue ?? 25
         let offset = params.arguments?["offset"]?.intValue ?? 0
         let cappedLimit = max(1, min(limit, 100))
         let cappedOffset = max(0, offset)
 
-        let queryItems: [URLQueryItem] = [
+        var queryItems: [URLQueryItem] = [
             URLQueryItem(name: "limit", value: String(cappedLimit)),
             URLQueryItem(name: "offset", value: String(cappedOffset))
         ]
+        queryItems.append(contentsOf: optionalQueryItems(from: params, allowed: ["include", "extend", "l"]))
 
         do {
             let data = try await client.get(path: "v1/me/library/songs", queryItems: queryItems)
@@ -57,22 +49,18 @@ extension ToolRegistry {
     }
 
     func handleGetLibraryAlbums(params: CallTool.Parameters) async throws -> CallTool.Result {
-        guard client.userToken != nil else {
-            return CallTool.Result(
-                content: [.text("User token is missing. Run the setup helper to acquire a Music-User-Token.")],
-                isError: true
-            )
-        }
+        if let errorResult = requireUserToken() { return errorResult }
 
         let limit = params.arguments?["limit"]?.intValue ?? 25
         let offset = params.arguments?["offset"]?.intValue ?? 0
         let cappedLimit = max(1, min(limit, 100))
         let cappedOffset = max(0, offset)
 
-        let queryItems: [URLQueryItem] = [
+        var queryItems: [URLQueryItem] = [
             URLQueryItem(name: "limit", value: String(cappedLimit)),
             URLQueryItem(name: "offset", value: String(cappedOffset))
         ]
+        queryItems.append(contentsOf: optionalQueryItems(from: params, allowed: ["include", "extend", "l"]))
 
         do {
             let data = try await client.get(path: "v1/me/library/albums", queryItems: queryItems)
@@ -84,22 +72,18 @@ extension ToolRegistry {
     }
 
     func handleGetLibraryArtists(params: CallTool.Parameters) async throws -> CallTool.Result {
-        guard client.userToken != nil else {
-            return CallTool.Result(
-                content: [.text("User token is missing. Run the setup helper to acquire a Music-User-Token.")],
-                isError: true
-            )
-        }
+        if let errorResult = requireUserToken() { return errorResult }
 
         let limit = params.arguments?["limit"]?.intValue ?? 25
         let offset = params.arguments?["offset"]?.intValue ?? 0
         let cappedLimit = max(1, min(limit, 100))
         let cappedOffset = max(0, offset)
 
-        let queryItems: [URLQueryItem] = [
+        var queryItems: [URLQueryItem] = [
             URLQueryItem(name: "limit", value: String(cappedLimit)),
             URLQueryItem(name: "offset", value: String(cappedOffset))
         ]
+        queryItems.append(contentsOf: optionalQueryItems(from: params, allowed: ["include", "extend", "l"]))
 
         do {
             let data = try await client.get(path: "v1/me/library/artists", queryItems: queryItems)
@@ -111,21 +95,20 @@ extension ToolRegistry {
     }
 
     func handleGetLibraryResources(params: CallTool.Parameters) async throws -> CallTool.Result {
-        guard client.userToken != nil else {
-            return CallTool.Result(
-                content: [.text("User token is missing. Run the setup helper to acquire a Music-User-Token.")],
-                isError: true
-            )
-        }
+        if let errorResult = requireUserToken() { return errorResult }
         guard let type = params.arguments?["type"]?.stringValue else {
             return CallTool.Result(content: [.text("Missing required argument 'type'.")], isError: true)
         }
-        guard let ids = params.arguments?["ids"]?.stringValue else {
-            return CallTool.Result(content: [.text("Missing required argument 'ids'.")], isError: true)
-        }
 
         let path = "v1/me/library/\(type)"
-        let queryItems: [URLQueryItem] = [URLQueryItem(name: "ids", value: ids)]
+        var queryItems = optionalQueryItems(from: params, allowed: ["include", "extend", "l", "limit", "offset", "filter[identity]"])
+        if let idsValue = params.arguments?["ids"] {
+            let ids = stringList(from: idsValue).joined(separator: ",")
+            guard !ids.isEmpty else {
+                return CallTool.Result(content: [.text("No IDs provided after parsing.")], isError: true)
+            }
+            queryItems.append(URLQueryItem(name: "ids", value: ids))
+        }
 
         do {
             let data = try await client.get(path: path, queryItems: queryItems)
@@ -136,20 +119,134 @@ extension ToolRegistry {
         }
     }
 
-    func handleGetRecentlyPlayed(params: CallTool.Parameters) async throws -> CallTool.Result {
-        guard client.userToken != nil else {
-            return CallTool.Result(
-                content: [.text("User token is missing. Run the setup helper to acquire a Music-User-Token.")],
-                isError: true
-            )
+    func handleGetLibraryResource(params: CallTool.Parameters) async throws -> CallTool.Result {
+        if let errorResult = requireUserToken() { return errorResult }
+        guard let type = params.arguments?["type"]?.stringValue else {
+            return CallTool.Result(content: [.text("Missing required argument 'type'.")], isError: true)
+        }
+        guard let id = params.arguments?["id"]?.stringValue else {
+            return CallTool.Result(content: [.text("Missing required argument 'id'.")], isError: true)
+        }
+
+        let path = "v1/me/library/\(type)/\(id)"
+        let queryItems = optionalQueryItems(from: params, allowed: ["include", "extend", "l"])
+
+        do {
+            let data = try await client.get(path: path, queryItems: queryItems)
+            let text = prettyPrintedJSON(data) ?? String(data: data, encoding: .utf8) ?? ""
+            return CallTool.Result(content: [.text(text)], isError: false)
+        } catch {
+            return CallTool.Result(content: [.text("Request failed: \(error.localizedDescription)")], isError: true)
+        }
+    }
+
+    func handleGetLibraryRelationship(params: CallTool.Parameters) async throws -> CallTool.Result {
+        if let errorResult = requireUserToken() { return errorResult }
+        guard let type = params.arguments?["type"]?.stringValue else {
+            return CallTool.Result(content: [.text("Missing required argument 'type'.")], isError: true)
+        }
+        guard let id = params.arguments?["id"]?.stringValue else {
+            return CallTool.Result(content: [.text("Missing required argument 'id'.")], isError: true)
+        }
+        guard let relationship = params.arguments?["relationship"]?.stringValue else {
+            return CallTool.Result(content: [.text("Missing required argument 'relationship'.")], isError: true)
+        }
+
+        let path = "v1/me/library/\(type)/\(id)/\(relationship)"
+        let queryItems = optionalQueryItems(from: params, allowed: ["include", "extend", "l", "limit", "offset"])
+
+        do {
+            let data = try await client.get(path: path, queryItems: queryItems)
+            let text = prettyPrintedJSON(data) ?? String(data: data, encoding: .utf8) ?? ""
+            return CallTool.Result(content: [.text(text)], isError: false)
+        } catch {
+            return CallTool.Result(content: [.text("Request failed: \(error.localizedDescription)")], isError: true)
+        }
+    }
+
+    func handleGetLibraryMultiByTypeIds(params: CallTool.Parameters) async throws -> CallTool.Result {
+        if let errorResult = requireUserToken() { return errorResult }
+        guard let idsValue = params.arguments?["ids"] else {
+            return CallTool.Result(content: [.text("Missing required argument 'ids'.")], isError: true)
+        }
+
+        let idsItems = idsQueryItems(from: idsValue, prefix: "ids")
+        guard !idsItems.isEmpty else {
+            return CallTool.Result(content: [.text("Argument 'ids' must be an object of resource types to IDs.")], isError: true)
+        }
+
+        let queryItems = idsItems + optionalQueryItems(from: params, allowed: ["include", "extend", "l"])
+
+        do {
+            let data = try await client.get(path: "v1/me/library", queryItems: queryItems)
+            let text = prettyPrintedJSON(data) ?? String(data: data, encoding: .utf8) ?? ""
+            return CallTool.Result(content: [.text(text)], isError: false)
+        } catch {
+            return CallTool.Result(content: [.text("Request failed: \(error.localizedDescription)")], isError: true)
+        }
+    }
+
+    func handleLibrarySearch(params: CallTool.Parameters) async throws -> CallTool.Result {
+        if let errorResult = requireUserToken() { return errorResult }
+        guard let term = params.arguments?["term"]?.stringValue?.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
+            return CallTool.Result(content: [.text("Missing required argument 'term'.")], isError: true)
+        }
+        guard let types = params.arguments?["types"]?.stringValue else {
+            return CallTool.Result(content: [.text("Missing required argument 'types'.")], isError: true)
         }
 
         let limit = params.arguments?["limit"]?.intValue ?? 10
-        let cappedLimit = max(1, min(limit, 100))
+        let offset = params.arguments?["offset"]?.intValue ?? 0
+        let cappedLimit = max(1, min(limit, 25))
+        let cappedOffset = max(0, offset)
 
-        let queryItems: [URLQueryItem] = [
+        var queryItems: [URLQueryItem] = [
+            URLQueryItem(name: "term", value: term),
+            URLQueryItem(name: "types", value: types),
             URLQueryItem(name: "limit", value: String(cappedLimit))
         ]
+        if cappedOffset > 0 {
+            queryItems.append(URLQueryItem(name: "offset", value: String(cappedOffset)))
+        }
+        queryItems.append(contentsOf: optionalQueryItems(from: params, allowed: ["l"]))
+
+        do {
+            let data = try await client.get(path: "v1/me/library/search", queryItems: queryItems)
+            let text = prettyPrintedJSON(data) ?? String(data: data, encoding: .utf8) ?? ""
+            return CallTool.Result(content: [.text(text)], isError: false)
+        } catch {
+            return CallTool.Result(content: [.text("Request failed: \(error.localizedDescription)")], isError: true)
+        }
+    }
+
+    func handleGetLibraryRecentlyAdded(params: CallTool.Parameters) async throws -> CallTool.Result {
+        if let errorResult = requireUserToken() { return errorResult }
+
+        let queryItems = optionalQueryItems(from: params, allowed: ["l"])
+        do {
+            let data = try await client.get(path: "v1/me/library/recently-added", queryItems: queryItems)
+            let text = prettyPrintedJSON(data) ?? String(data: data, encoding: .utf8) ?? ""
+            return CallTool.Result(content: [.text(text)], isError: false)
+        } catch {
+            return CallTool.Result(content: [.text("Request failed: \(error.localizedDescription)")], isError: true)
+        }
+    }
+
+    func handleGetRecentlyPlayed(params: CallTool.Parameters) async throws -> CallTool.Result {
+        if let errorResult = requireUserToken() { return errorResult }
+
+        let limit = params.arguments?["limit"]?.intValue ?? 10
+        let offset = params.arguments?["offset"]?.intValue ?? 0
+        let cappedLimit = max(1, min(limit, 100))
+        let cappedOffset = max(0, offset)
+
+        var queryItems: [URLQueryItem] = [
+            URLQueryItem(name: "limit", value: String(cappedLimit))
+        ]
+        if cappedOffset > 0 {
+            queryItems.append(URLQueryItem(name: "offset", value: String(cappedOffset)))
+        }
+        queryItems.append(contentsOf: optionalQueryItems(from: params, allowed: ["types", "include", "extend", "l"]))
 
         do {
             let data = try await client.get(path: "v1/me/recent/played", queryItems: queryItems)
@@ -160,20 +257,66 @@ extension ToolRegistry {
         }
     }
 
-    func handleGetRecommendations(params: CallTool.Parameters) async throws -> CallTool.Result {
-        guard client.userToken != nil else {
-            return CallTool.Result(
-                content: [.text("User token is missing. Run the setup helper to acquire a Music-User-Token.")],
-                isError: true
-            )
+    func handleGetRecentlyPlayedTracks(params: CallTool.Parameters) async throws -> CallTool.Result {
+        if let errorResult = requireUserToken() { return errorResult }
+
+        let limit = params.arguments?["limit"]?.intValue ?? 10
+        let offset = params.arguments?["offset"]?.intValue ?? 0
+        let cappedLimit = max(1, min(limit, 100))
+        let cappedOffset = max(0, offset)
+
+        var queryItems: [URLQueryItem] = [
+            URLQueryItem(name: "limit", value: String(cappedLimit))
+        ]
+        if cappedOffset > 0 {
+            queryItems.append(URLQueryItem(name: "offset", value: String(cappedOffset)))
         }
+        queryItems.append(contentsOf: optionalQueryItems(from: params, allowed: ["types", "include", "extend", "l"]))
+
+        do {
+            let data = try await client.get(path: "v1/me/recent/played/tracks", queryItems: queryItems)
+            let text = prettyPrintedJSON(data) ?? String(data: data, encoding: .utf8) ?? ""
+            return CallTool.Result(content: [.text(text)], isError: false)
+        } catch {
+            return CallTool.Result(content: [.text("Request failed: \(error.localizedDescription)")], isError: true)
+        }
+    }
+
+    func handleGetRecentlyPlayedStations(params: CallTool.Parameters) async throws -> CallTool.Result {
+        if let errorResult = requireUserToken() { return errorResult }
+
+        let limit = params.arguments?["limit"]?.intValue ?? 10
+        let offset = params.arguments?["offset"]?.intValue ?? 0
+        let cappedLimit = max(1, min(limit, 100))
+        let cappedOffset = max(0, offset)
+
+        var queryItems: [URLQueryItem] = [
+            URLQueryItem(name: "limit", value: String(cappedLimit))
+        ]
+        if cappedOffset > 0 {
+            queryItems.append(URLQueryItem(name: "offset", value: String(cappedOffset)))
+        }
+        queryItems.append(contentsOf: optionalQueryItems(from: params, allowed: ["include", "extend", "l"]))
+
+        do {
+            let data = try await client.get(path: "v1/me/recent/radio-stations", queryItems: queryItems)
+            let text = prettyPrintedJSON(data) ?? String(data: data, encoding: .utf8) ?? ""
+            return CallTool.Result(content: [.text(text)], isError: false)
+        } catch {
+            return CallTool.Result(content: [.text("Request failed: \(error.localizedDescription)")], isError: true)
+        }
+    }
+
+    func handleGetRecommendations(params: CallTool.Parameters) async throws -> CallTool.Result {
+        if let errorResult = requireUserToken() { return errorResult }
 
         let limit = params.arguments?["limit"]?.intValue ?? 10
         let cappedLimit = max(1, min(limit, 50))
 
-        let queryItems: [URLQueryItem] = [
+        var queryItems: [URLQueryItem] = [
             URLQueryItem(name: "limit", value: String(cappedLimit))
         ]
+        queryItems.append(contentsOf: optionalQueryItems(from: params, allowed: ["ids", "include", "extend", "l"]))
 
         do {
             let data = try await client.get(path: "v1/me/recommendations", queryItems: queryItems)
@@ -184,23 +327,80 @@ extension ToolRegistry {
         }
     }
 
-    func handleGetHeavyRotation(params: CallTool.Parameters) async throws -> CallTool.Result {
-        guard client.userToken != nil else {
-            return CallTool.Result(
-                content: [.text("User token is missing. Run the setup helper to acquire a Music-User-Token.")],
-                isError: true
-            )
+    func handleGetRecommendation(params: CallTool.Parameters) async throws -> CallTool.Result {
+        if let errorResult = requireUserToken() { return errorResult }
+        guard let id = params.arguments?["id"]?.stringValue else {
+            return CallTool.Result(content: [.text("Missing required argument 'id'.")], isError: true)
         }
 
-        let limit = params.arguments?["limit"]?.intValue ?? 10
-        let cappedLimit = max(1, min(limit, 100))
+        let queryItems = optionalQueryItems(from: params, allowed: ["include", "extend", "l"])
+        do {
+            let data = try await client.get(path: "v1/me/recommendations/\(id)", queryItems: queryItems)
+            let text = prettyPrintedJSON(data) ?? String(data: data, encoding: .utf8) ?? ""
+            return CallTool.Result(content: [.text(text)], isError: false)
+        } catch {
+            return CallTool.Result(content: [.text("Request failed: \(error.localizedDescription)")], isError: true)
+        }
+    }
 
-        let queryItems: [URLQueryItem] = [
+    func handleGetRecommendationRelationship(params: CallTool.Parameters) async throws -> CallTool.Result {
+        if let errorResult = requireUserToken() { return errorResult }
+        guard let id = params.arguments?["id"]?.stringValue else {
+            return CallTool.Result(content: [.text("Missing required argument 'id'.")], isError: true)
+        }
+        guard let relationship = params.arguments?["relationship"]?.stringValue else {
+            return CallTool.Result(content: [.text("Missing required argument 'relationship'.")], isError: true)
+        }
+
+        let queryItems = optionalQueryItems(from: params, allowed: ["include", "extend", "l", "limit", "offset"])
+        do {
+            let data = try await client.get(path: "v1/me/recommendations/\(id)/\(relationship)", queryItems: queryItems)
+            let text = prettyPrintedJSON(data) ?? String(data: data, encoding: .utf8) ?? ""
+            return CallTool.Result(content: [.text(text)], isError: false)
+        } catch {
+            return CallTool.Result(content: [.text("Request failed: \(error.localizedDescription)")], isError: true)
+        }
+    }
+
+    func handleGetHeavyRotation(params: CallTool.Parameters) async throws -> CallTool.Result {
+        if let errorResult = requireUserToken() { return errorResult }
+
+        let limit = params.arguments?["limit"]?.intValue ?? 10
+        let offset = params.arguments?["offset"]?.intValue ?? 0
+        let cappedLimit = max(1, min(limit, 100))
+        let cappedOffset = max(0, offset)
+
+        var queryItems: [URLQueryItem] = [
             URLQueryItem(name: "limit", value: String(cappedLimit))
         ]
+        if cappedOffset > 0 {
+            queryItems.append(URLQueryItem(name: "offset", value: String(cappedOffset)))
+        }
+        queryItems.append(contentsOf: optionalQueryItems(from: params, allowed: ["include", "extend", "l"]))
 
         do {
             let data = try await client.get(path: "v1/me/history/heavy-rotation", queryItems: queryItems)
+            let text = prettyPrintedJSON(data) ?? String(data: data, encoding: .utf8) ?? ""
+            return CallTool.Result(content: [.text(text)], isError: false)
+        } catch {
+            return CallTool.Result(content: [.text("Request failed: \(error.localizedDescription)")], isError: true)
+        }
+    }
+
+    func handleGetReplayData(params: CallTool.Parameters) async throws -> CallTool.Result {
+        if let errorResult = requireUserToken() { return errorResult }
+        let filterYear = params.arguments?["filter[year]"]?.stringValue ?? params.arguments?["year"]?.stringValue
+        guard let filterYear, !filterYear.isEmpty else {
+            return CallTool.Result(content: [.text("Missing required argument 'filter[year]'.")], isError: true)
+        }
+
+        var queryItems: [URLQueryItem] = [
+            URLQueryItem(name: "filter[year]", value: filterYear)
+        ]
+        queryItems.append(contentsOf: optionalQueryItems(from: params, allowed: ["include", "extend", "l", "views"]))
+
+        do {
+            let data = try await client.get(path: "v1/me/music-summaries", queryItems: queryItems)
             let text = prettyPrintedJSON(data) ?? String(data: data, encoding: .utf8) ?? ""
             return CallTool.Result(content: [.text(text)], isError: false)
         } catch {
@@ -214,23 +414,34 @@ extension ToolRegistry {
     }
 
     func handleCreatePlaylist(params: CallTool.Parameters) async throws -> CallTool.Result {
-        guard client.userToken != nil else {
-            return CallTool.Result(
-                content: [.text("User token is missing. Run the setup helper to acquire a Music-User-Token.")],
-                isError: true
-            )
-        }
+        if let errorResult = requireUserToken() { return errorResult }
         guard let name = params.arguments?["name"]?.stringValue else {
             return CallTool.Result(content: [.text("Missing required argument 'name'.")], isError: true)
         }
         let description = params.arguments?["description"]?.stringValue
+        let parentId = params.arguments?["parent"]?.stringValue
+
+        let trackValues = params.arguments?["tracks"] ?? params.arguments?["trackIds"]
+        let trackIds = trackValues.map { stringList(from: $0) } ?? []
 
         let bodyDict: [String: Any] = {
             var attributes: [String: Any] = ["name": name]
             if let description { attributes["description"] = description }
-            return [
-                "attributes": attributes
-            ]
+            var payload: [String: Any] = ["attributes": attributes]
+            var relationships: [String: Any] = [:]
+            if let parentId, !parentId.isEmpty {
+                relationships["parent"] = [
+                    "data": ["id": parentId, "type": "library-playlist-folders"]
+                ]
+            }
+            if !trackIds.isEmpty {
+                let dataArray = trackIds.map { ["id": $0, "type": "songs"] }
+                relationships["tracks"] = ["data": dataArray]
+            }
+            if !relationships.isEmpty {
+                payload["relationships"] = relationships
+            }
+            return payload
         }()
 
         guard let body = try? JSONSerialization.data(withJSONObject: bodyDict, options: []) else {
@@ -238,7 +449,7 @@ extension ToolRegistry {
         }
 
         do {
-            let data = try await client.post(path: "v1/me/library/playlists", body: body)
+            let data = try await client.post(path: "v1/me/library/playlists", queryItems: [], body: body)
             let text = prettyPrintedJSON(data) ?? String(data: data, encoding: .utf8) ?? ""
             return CallTool.Result(content: [.text(text)], isError: false)
         } catch {
@@ -247,20 +458,15 @@ extension ToolRegistry {
     }
 
     func handleAddPlaylistTracks(params: CallTool.Parameters) async throws -> CallTool.Result {
-        guard client.userToken != nil else {
-            return CallTool.Result(
-                content: [.text("User token is missing. Run the setup helper to acquire a Music-User-Token.")],
-                isError: true
-            )
-        }
+        if let errorResult = requireUserToken() { return errorResult }
         guard let playlistId = params.arguments?["playlistId"]?.stringValue else {
             return CallTool.Result(content: [.text("Missing required argument 'playlistId'.")], isError: true)
         }
-        guard let trackIdsRaw = params.arguments?["trackIds"]?.stringValue else {
+        guard let trackIdsValue = params.arguments?["trackIds"] else {
             return CallTool.Result(content: [.text("Missing required argument 'trackIds'.")], isError: true)
         }
 
-        let ids = trackIdsRaw.split(separator: ",").map { String($0).trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
+        let ids = stringList(from: trackIdsValue)
         guard !ids.isEmpty else {
             return CallTool.Result(content: [.text("No track IDs provided after parsing.")], isError: true)
         }
@@ -275,7 +481,110 @@ extension ToolRegistry {
         let path = "v1/me/library/playlists/\(playlistId)/tracks"
 
         do {
-            let data = try await client.post(path: path, body: body)
+            let data = try await client.post(path: path, queryItems: [], body: body)
+            let text = prettyPrintedJSON(data) ?? String(data: data, encoding: .utf8) ?? ""
+            return CallTool.Result(content: [.text(text)], isError: false)
+        } catch {
+            return CallTool.Result(content: [.text("Request failed: \(error.localizedDescription)")], isError: true)
+        }
+    }
+
+    func handleCreatePlaylistFolder(params: CallTool.Parameters) async throws -> CallTool.Result {
+        if let errorResult = requireUserToken() { return errorResult }
+        guard let name = params.arguments?["name"]?.stringValue else {
+            return CallTool.Result(content: [.text("Missing required argument 'name'.")], isError: true)
+        }
+
+        let bodyDict: [String: Any] = [
+            "attributes": ["name": name]
+        ]
+        guard let body = try? JSONSerialization.data(withJSONObject: bodyDict, options: []) else {
+            return CallTool.Result(content: [.text("Failed to encode request body.")], isError: true)
+        }
+
+        do {
+            let data = try await client.post(path: "v1/me/library/playlist-folders", queryItems: [], body: body)
+            let text = prettyPrintedJSON(data) ?? String(data: data, encoding: .utf8) ?? ""
+            return CallTool.Result(content: [.text(text)], isError: false)
+        } catch {
+            return CallTool.Result(content: [.text("Request failed: \(error.localizedDescription)")], isError: true)
+        }
+    }
+
+    func handleAddLibraryResources(params: CallTool.Parameters) async throws -> CallTool.Result {
+        if let errorResult = requireUserToken() { return errorResult }
+        guard let idsValue = params.arguments?["ids"] else {
+            return CallTool.Result(content: [.text("Missing required argument 'ids'.")], isError: true)
+        }
+
+        var queryItems = idsQueryItems(from: idsValue, prefix: "ids")
+        if queryItems.isEmpty, let resourceType = params.arguments?["resourceType"]?.stringValue {
+            let ids = stringList(from: idsValue).joined(separator: ",")
+            if !ids.isEmpty {
+                queryItems = [URLQueryItem(name: "ids[\(resourceType)]", value: ids)]
+            }
+        }
+        guard !queryItems.isEmpty else {
+            return CallTool.Result(content: [.text("Argument 'ids' must be an object of resource types to IDs.")], isError: true)
+        }
+
+        queryItems.append(contentsOf: optionalQueryItems(from: params, allowed: ["l"]))
+
+        do {
+            let data = try await client.post(path: "v1/me/library", queryItems: queryItems, body: nil)
+            let text = prettyPrintedJSON(data) ?? String(data: data, encoding: .utf8) ?? ""
+            return CallTool.Result(content: [.text(text)], isError: false)
+        } catch {
+            return CallTool.Result(content: [.text("Request failed: \(error.localizedDescription)")], isError: true)
+        }
+    }
+
+    func handleSetRating(params: CallTool.Parameters) async throws -> CallTool.Result {
+        if let errorResult = requireUserToken() { return errorResult }
+        guard let resourceType = params.arguments?["resourceType"]?.stringValue else {
+            return CallTool.Result(content: [.text("Missing required argument 'resourceType'.")], isError: true)
+        }
+        guard let id = params.arguments?["id"]?.stringValue else {
+            return CallTool.Result(content: [.text("Missing required argument 'id'.")], isError: true)
+        }
+        guard let value = params.arguments?["value"]?.intValue else {
+            return CallTool.Result(content: [.text("Missing required argument 'value'.")], isError: true)
+        }
+
+        let bodyDict: [String: Any] = [
+            "type": "ratings",
+            "attributes": ["value": value]
+        ]
+        guard let body = try? JSONSerialization.data(withJSONObject: bodyDict, options: []) else {
+            return CallTool.Result(content: [.text("Failed to encode request body.")], isError: true)
+        }
+
+        let queryItems = optionalQueryItems(from: params, allowed: ["l"])
+        let path = "v1/me/ratings/\(resourceType)/\(id)"
+
+        do {
+            let data = try await client.put(path: path, queryItems: queryItems, body: body)
+            let text = prettyPrintedJSON(data) ?? String(data: data, encoding: .utf8) ?? ""
+            return CallTool.Result(content: [.text(text)], isError: false)
+        } catch {
+            return CallTool.Result(content: [.text("Request failed: \(error.localizedDescription)")], isError: true)
+        }
+    }
+
+    func handleDeleteRating(params: CallTool.Parameters) async throws -> CallTool.Result {
+        if let errorResult = requireUserToken() { return errorResult }
+        guard let resourceType = params.arguments?["resourceType"]?.stringValue else {
+            return CallTool.Result(content: [.text("Missing required argument 'resourceType'.")], isError: true)
+        }
+        guard let id = params.arguments?["id"]?.stringValue else {
+            return CallTool.Result(content: [.text("Missing required argument 'id'.")], isError: true)
+        }
+
+        let queryItems = optionalQueryItems(from: params, allowed: ["l"])
+        let path = "v1/me/ratings/\(resourceType)/\(id)"
+
+        do {
+            let data = try await client.delete(path: path, queryItems: queryItems)
             let text = prettyPrintedJSON(data) ?? String(data: data, encoding: .utf8) ?? ""
             return CallTool.Result(content: [.text(text)], isError: false)
         } catch {
@@ -284,17 +593,81 @@ extension ToolRegistry {
     }
 
     func handleAddLibrarySongs(params: CallTool.Parameters) async throws -> CallTool.Result {
-        let message = "Apple Music API returns 405 for adding songs to library. No request was sent."
-        return CallTool.Result(content: [.text(message)], isError: true)
+        if let errorResult = requireUserToken() { return errorResult }
+        guard let idsValue = params.arguments?["ids"] else {
+            return CallTool.Result(content: [.text("Missing required argument 'ids'.")], isError: true)
+        }
+        let ids = stringList(from: idsValue).joined(separator: ",")
+        guard !ids.isEmpty else {
+            return CallTool.Result(content: [.text("No IDs provided after parsing.")], isError: true)
+        }
+
+        var queryItems = [URLQueryItem(name: "ids[songs]", value: ids)]
+        queryItems.append(contentsOf: optionalQueryItems(from: params, allowed: ["l"]))
+
+        do {
+            let data = try await client.post(path: "v1/me/library", queryItems: queryItems, body: nil)
+            let text = prettyPrintedJSON(data) ?? String(data: data, encoding: .utf8) ?? ""
+            return CallTool.Result(content: [.text(text)], isError: false)
+        } catch {
+            return CallTool.Result(content: [.text("Request failed: \(error.localizedDescription)")], isError: true)
+        }
     }
 
     func handleAddLibraryAlbums(params: CallTool.Parameters) async throws -> CallTool.Result {
-        let message = "Apple Music API returns 405 for adding albums to library. No request was sent."
-        return CallTool.Result(content: [.text(message)], isError: true)
+        if let errorResult = requireUserToken() { return errorResult }
+        guard let idsValue = params.arguments?["ids"] else {
+            return CallTool.Result(content: [.text("Missing required argument 'ids'.")], isError: true)
+        }
+        let ids = stringList(from: idsValue).joined(separator: ",")
+        guard !ids.isEmpty else {
+            return CallTool.Result(content: [.text("No IDs provided after parsing.")], isError: true)
+        }
+
+        var queryItems = [URLQueryItem(name: "ids[albums]", value: ids)]
+        queryItems.append(contentsOf: optionalQueryItems(from: params, allowed: ["l"]))
+
+        do {
+            let data = try await client.post(path: "v1/me/library", queryItems: queryItems, body: nil)
+            let text = prettyPrintedJSON(data) ?? String(data: data, encoding: .utf8) ?? ""
+            return CallTool.Result(content: [.text(text)], isError: false)
+        } catch {
+            return CallTool.Result(content: [.text("Request failed: \(error.localizedDescription)")], isError: true)
+        }
     }
 
     func handleAddFavorites(params: CallTool.Parameters) async throws -> CallTool.Result {
-        let message = "Apple Music API returns 405 for favorites. No request was sent."
-        return CallTool.Result(content: [.text(message)], isError: true)
+        if let errorResult = requireUserToken() { return errorResult }
+
+        var queryItems: [URLQueryItem] = []
+        if let idsValue = params.arguments?["ids"] {
+            let idsItems = idsQueryItems(from: idsValue, prefix: "ids")
+            if !idsItems.isEmpty {
+                queryItems.append(contentsOf: idsItems)
+            } else {
+                let ids = stringList(from: idsValue).joined(separator: ",")
+                if !ids.isEmpty {
+                    if let resourceType = params.arguments?["resourceType"]?.stringValue, !resourceType.isEmpty {
+                        queryItems.append(URLQueryItem(name: "ids[\(resourceType)]", value: ids))
+                    } else {
+                        queryItems.append(URLQueryItem(name: "ids", value: ids))
+                    }
+                }
+            }
+        }
+
+        guard !queryItems.isEmpty else {
+            return CallTool.Result(content: [.text("Missing required argument 'ids'.")], isError: true)
+        }
+
+        queryItems.append(contentsOf: optionalQueryItems(from: params, allowed: ["l"]))
+
+        do {
+            let data = try await client.post(path: "v1/me/favorites", queryItems: queryItems, body: nil)
+            let text = prettyPrintedJSON(data) ?? String(data: data, encoding: .utf8) ?? ""
+            return CallTool.Result(content: [.text(text)], isError: false)
+        } catch {
+            return CallTool.Result(content: [.text("Request failed: \(error.localizedDescription)")], isError: true)
+        }
     }
 }
