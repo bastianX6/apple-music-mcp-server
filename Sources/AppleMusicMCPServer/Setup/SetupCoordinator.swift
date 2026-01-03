@@ -54,7 +54,12 @@ struct SetupCoordinator {
     }
 
     private func loadConfigForSetup() async throws -> AppConfig {
-        try await ConfigLoader(configPath: configPath).load()
+        var config = SetupHelper.loadConfig(at: SetupHelper.configURL(overridePath: configPath))
+        let env = ProcessInfo.processInfo.environment
+        config.teamID = try requiredEnv("APPLE_MUSIC_TEAM_ID", env: env)
+        config.musicKitKeyID = try requiredEnv("APPLE_MUSIC_MUSICKIT_ID", env: env)
+        config.privateKey = try requiredEnv("APPLE_MUSIC_PRIVATE_KEY", env: env)
+        return config
     }
 
     private func resolveToken(provided: String?) async throws -> String {
@@ -67,5 +72,12 @@ struct SetupCoordinator {
             throw SetupError.emptyToken
         }
         return line
+    }
+
+    private func requiredEnv(_ key: String, env: [String: String]) throws -> String {
+        guard let raw = env[key]?.trimmingCharacters(in: .whitespacesAndNewlines), !raw.isEmpty else {
+            throw SetupError.missingEnvironmentVariable(key)
+        }
+        return raw
     }
 }

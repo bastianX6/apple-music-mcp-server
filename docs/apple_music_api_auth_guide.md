@@ -32,6 +32,8 @@ Access public catalog endpoints without user interaction.
   - `APPLE_MUSIC_BUNDLE_ID` (for completeness)
 - Local config file (user-only permissions 0600): `~/Library/Application Support/apple-music-mcp/config.json`
 
+Environment variables are read only when running `apple-music-mcp setup`, which uses them to populate the JSON config. The runtime server reads exclusively from that JSON file.
+
 ### Delivery to Requests
 - Include `Authorization: Bearer <developerToken>` on catalog requests.
 - Do not attach the developer token to user endpoints without a user token (Apple will 401/403).
@@ -61,14 +63,14 @@ Use a helper tool that opens the default browser and leverages **MusicKit JS** f
 - Reuse existing JS flow: You may reuse the TypeScript CLI to produce the user token and point the Swift server to the same config file. Behavior is identical once the token exists.
 
 ### Configuration Inputs
-- Developer token inputs via env/config: `APPLE_MUSIC_TEAM_ID`, `APPLE_MUSIC_MUSICKIT_ID`, `APPLE_MUSIC_PRIVATE_KEY`.
+- Developer token inputs provided as env vars to the `setup` subcommand: `APPLE_MUSIC_TEAM_ID`, `APPLE_MUSIC_MUSICKIT_ID`, `APPLE_MUSIC_PRIVATE_KEY`.
 - User token: `~/Library/Application Support/apple-music-mcp/config.json` (persisted by the integrated setup helper). Env `APPLE_MUSIC_USER_TOKEN` is ignored.
 
 ### Request Headers
 - Attach `Music-User-Token: <userToken>` to all `/v1/me/*` and personalized endpoints.
 
 ## Recommended Server Authentication Architecture
-1) **Config Loader**: Merge env vars and config file; enforce 0600 permissions on file writes.
+1) **Config Loader**: Read the config file only; enforce 0600 permissions on file writes.
 2) **DeveloperTokenProvider**: Build and cache the ES256 JWT; expose expiration metadata for proactive renewal.
 3) **UserTokenProvider**: Load token if present; expose clear errors when missing for user endpoints.
 4) **Request Pipeline**: Choose headers per endpoint class (catalog vs library); never send a stale token.
@@ -76,7 +78,7 @@ Use a helper tool that opens the default browser and leverages **MusicKit JS** f
 
 ## Setup Workflow (End Users)
 1) Install the Swift server (SPM build or binary release for macOS).
-2) Provide developer credentials via env or config file.
+2) Provide developer credentials via env vars when running `setup` so they are written into the config file.
 3) Run the setup helper to obtain a user token (opens browser, MusicKit auth).
 4) Start the MCP server; it loads tokens and registers tools over STDIO.
 5) Invoke tools from MCP clients with catalog + user endpoints available.

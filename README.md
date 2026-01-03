@@ -25,24 +25,41 @@ An MCP server that exposes Apple Music API operations (catalog, library, recomme
 
 ## Configuration
 
-### Required environment variables (developer token)
+### Config file
+- The server only reads credentials from `~/Library/Application Support/apple-music-mcp/config.json` (0600 permissions enforced).
+- Override the location with `--config /path/to/config.json` on either the `run` or `setup` subcommand.
+- If the file is missing, `apple-music-mcp` exits with an error reminding you to run `setup`.
+
+### Required environment variables for `setup`
 - `APPLE_MUSIC_TEAM_ID`
 - `APPLE_MUSIC_MUSICKIT_ID`
 - `APPLE_MUSIC_PRIVATE_KEY` (inline PEM)
 
-User token is normally written by the `setup` command into the config file; optionally it can be provided via `APPLE_MUSIC_USER_TOKEN`.
+The `setup` subcommand builds the config file exclusively from those environment variables plus the Music-User-Token you provide (CLI or browser helper). Missing env vars now cause `setup` to fail fast.
 
 ### User token setup
 - CLI mode (persist an existing token):
    ```bash
+   APPLE_MUSIC_TEAM_ID="<team>" \
+   APPLE_MUSIC_MUSICKIT_ID="<kid>" \
+   APPLE_MUSIC_PRIVATE_KEY="$(cat /path/to/AuthKey.p8)" \
    swift run apple-music-mcp setup --token "<user-token>"
    # Using the installed binary
+   APPLE_MUSIC_TEAM_ID="<team>" \
+   APPLE_MUSIC_MUSICKIT_ID="<kid>" \
+   APPLE_MUSIC_PRIVATE_KEY="$(cat /path/to/AuthKey.p8)" \
    $HOME/.local/bin/apple-music-mcp setup --token "<user-token>"
    ```
 - Browser helper mode (local server + MusicKit flow):
    ```bash
+   APPLE_MUSIC_TEAM_ID="<team>" \
+   APPLE_MUSIC_MUSICKIT_ID="<kid>" \
+   APPLE_MUSIC_PRIVATE_KEY="$(cat /path/to/AuthKey.p8)" \
    swift run apple-music-mcp setup --serve --port 3000
    # Using the installed binary
+   APPLE_MUSIC_TEAM_ID="<team>" \
+   APPLE_MUSIC_MUSICKIT_ID="<kid>" \
+   APPLE_MUSIC_PRIVATE_KEY="$(cat /path/to/AuthKey.p8)" \
    $HOME/.local/bin/apple-music-mcp setup --serve --port 3000
    ```
    This opens your default browser (via `open` on macOS or `xdg-open` if available on Linux) for Apple Music authorization and writes `~/Library/Application Support/apple-music-mcp/config.json` with `0600` permissions once the token is received (including team ID, MusicKit ID, and private key if available from env).
@@ -51,18 +68,13 @@ User token is normally written by the `setup` command into the config file; opti
 ### Running the server
 - Using source (dev workflow):
    ```bash
-   APPLE_MUSIC_TEAM_ID="<team>" \
-   APPLE_MUSIC_MUSICKIT_ID="<kid>" \
-   APPLE_MUSIC_PRIVATE_KEY="$(cat /path/to/AuthKey.p8)" \
    swift run apple-music-mcp
    ```
 - Using installed binary (after `install.sh` or manual install):
    ```bash
-   APPLE_MUSIC_TEAM_ID="<team>" \
-   APPLE_MUSIC_MUSICKIT_ID="<kid>" \
-   APPLE_MUSIC_PRIVATE_KEY="$(cat /path/to/AuthKey.p8)" \
    $HOME/.local/bin/apple-music-mcp
    ```
+Both commands read `~/Library/Application Support/apple-music-mcp/config.json` (or the file passed via `--config`) and ignore environment variables at runtime.
 
 ## Tests
 From the Swift package directory (repo root):

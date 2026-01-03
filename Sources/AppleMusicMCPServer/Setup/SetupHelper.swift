@@ -3,8 +3,8 @@ import Foundation
 struct SetupHelper {
     private static let defaultConfigPath = "~/Library/Application Support/apple-music-mcp/config.json"
 
-    static func configURL(env: [String: String] = ProcessInfo.processInfo.environment, overridePath: String? = nil) -> URL {
-        let override = overridePath ?? env["APPLE_MUSIC_CONFIG_PATH"] ?? defaultConfigPath
+    static func configURL(overridePath: String? = nil) -> URL {
+        let override = overridePath ?? defaultConfigPath
         let expanded = (override as NSString).expandingTildeInPath
         return URL(fileURLWithPath: expanded)
     }
@@ -13,7 +13,6 @@ struct SetupHelper {
     static func persistConfig(
         _ config: AppConfig,
         configPath: String? = nil,
-        env: [String: String] = ProcessInfo.processInfo.environment
     ) throws -> URL {
         var sanitized = AppConfig(
             teamID: config.teamID?.trimmingCharacters(in: .whitespacesAndNewlines),
@@ -31,7 +30,7 @@ struct SetupHelper {
             throw SetupError.emptyToken
         }
 
-        let url = configURL(env: env, overridePath: configPath)
+        let url = configURL(overridePath: configPath)
         let existing = loadConfig(at: url)
         var merged = existing
         if let teamID = sanitized.teamID { merged.teamID = teamID }
@@ -72,11 +71,14 @@ struct SetupHelper {
 
 enum SetupError: LocalizedError {
     case emptyToken
+    case missingEnvironmentVariable(String)
 
     var errorDescription: String? {
         switch self {
         case .emptyToken:
             return "User token is empty. Provide a valid Music-User-Token."
+        case .missingEnvironmentVariable(let key):
+            return "Missing required environment variable \(key)."
         }
     }
 }

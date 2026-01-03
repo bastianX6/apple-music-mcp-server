@@ -19,7 +19,7 @@ Blueprint for migrating the Apple Music MCP server from TypeScript to Swift as a
 - **Auth**: Developer token (ES256 JWT) generated in-process; user token supplied via setup helper or existing JS flow.
 - **HTTP Client**: `URLSession` with async/await; thin wrapper for Apple Music API.
 - **Tools Layer**: Domain-grouped tool registrations mapping to Apple Music endpoints; structured errors.
-- **Config**: Env vars + `~/Library/Application Support/apple-music-mcp/config.json` (0600 perms).
+- **Config**: JSON file at `~/Library/Application Support/apple-music-mcp/config.json` (0600 perms); env vars only feed the setup command that writes the file.
 
 ## Package Layout (SPM)
 ```
@@ -61,8 +61,8 @@ apple-music-mcp-server/swift/
 - **User Token**: Obtained via the integrated setup flow (CLI or browser) or reused from existing TypeScript flow. Stored at `~/Library/Application Support/apple-music-mcp/config.json` with 0600 permissions. Read-only usage in server.
 
 ## Configuration
-- Env vars (precedence): `APPLE_MUSIC_TEAM_ID`, `APPLE_MUSIC_MUSICKIT_ID`, `APPLE_MUSIC_PRIVATE_KEY`.
-- Config file fallback: JSON with the same fields plus the user token persisted by setup; user token is read only from the config file. Enforce user-only permissions.
+- Env vars (`APPLE_MUSIC_TEAM_ID`, `APPLE_MUSIC_MUSICKIT_ID`, `APPLE_MUSIC_PRIVATE_KEY`) are consumed solely by the `setup` flow to produce the JSON file.
+- Config file is the single source of truth at runtime and contains those keys plus the user token persisted by setup. Enforce user-only permissions.
 - Clear error messages when required secrets are missing; server should not crash—surface actionable MCP errors instead.
 
 ## Tool Registration Guidelines
@@ -79,7 +79,7 @@ apple-music-mcp-server/swift/
 - Error mapping: decode Apple Music error payloads; include `status`, `title`, `detail` in MCP errors.
 
 ## Testing Plan
-- **Unit**: developer token signing/expiry checks; config loader precedence; header injection; pagination parsing; error decoding.
+- **Unit**: developer token signing/expiry checks; config loader file/permission validation; header injection; pagination parsing; error decoding.
 - **Integration**: mock `URLSession` via custom `URLProtocol` to simulate Apple responses; verify tool outputs and MCP error propagation.
 - **Fixture**: golden payloads for catalog and library resources to guard against decoding regressions.
 - **Setup helper**: test local server callback handling and config file persistence.

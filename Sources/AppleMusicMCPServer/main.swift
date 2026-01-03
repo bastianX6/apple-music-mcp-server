@@ -34,7 +34,7 @@ struct AppleMusicMCPServerMain: AsyncParsableCommand {
         @Option(name: .customLong("port"), help: "Port for the local HTTP server (default: 3000).")
         var port: UInt16?
 
-        @Option(name: .customLong("config-path"), help: "Path to config file (default: ~/Library/Application Support/apple-music-mcp/config.json).")
+        @Option(name: .customLong("config"), help: "Path to config file (default: ~/Library/Application Support/apple-music-mcp/config.json).")
         var configPath: String?
 
         func run() async throws {

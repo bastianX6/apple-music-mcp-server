@@ -12,26 +12,29 @@ struct ConfigLoader {
     }
 
     func load() async throws -> AppConfig {
-        let env = ProcessInfo.processInfo.environment
-        let configURL = resolveConfigURL(env: env)
+        let configURL = resolveConfigURL()
         let providers = try await makeProviders(configURL: configURL)
         let reader = ConfigReader(providers: providers)
 
         let teamID = configValue([
-            "APPLE_MUSIC_TEAM_ID",
-            "appleMusic.teamId"
+            "appleMusic.teamId",
+            "teamID",
+            "APPLE_MUSIC_TEAM_ID"
         ], reader: reader)
         let musicKitKeyID = configValue([
-            "APPLE_MUSIC_MUSICKIT_ID",
-            "appleMusic.musicKitKeyId"
+            "appleMusic.musicKitKeyId",
+            "musicKitKeyID",
+            "APPLE_MUSIC_MUSICKIT_ID"
         ], reader: reader)
         let privateKey = configValue([
-            "APPLE_MUSIC_PRIVATE_KEY",
-            "appleMusic.privateKey"
+            "appleMusic.privateKey",
+            "privateKey",
+            "APPLE_MUSIC_PRIVATE_KEY"
         ], reader: reader)
         let userToken = configValue([
-            "APPLE_MUSIC_USER_TOKEN",
-            "appleMusic.userToken"
+            "appleMusic.userToken",
+            "userToken",
+            "APPLE_MUSIC_USER_TOKEN"
         ], reader: reader)
 
         return AppConfig(
@@ -42,22 +45,20 @@ struct ConfigLoader {
         )
     }
 
-    private func resolveConfigURL(env: [String: String]) -> URL {
-        let chosen = overrideConfigPath ?? env["APPLE_MUSIC_CONFIG_PATH"] ?? defaultConfigPath
+    private func resolveConfigURL() -> URL {
+        let chosen = overrideConfigPath ?? defaultConfigPath
         let expanded = (chosen as NSString).expandingTildeInPath
         return URL(fileURLWithPath: expanded)
     }
 
     private func makeProviders(configURL: URL) async throws -> [any ConfigProvider] {
-        var providers: [any ConfigProvider] = [EnvironmentVariablesProvider()]
-
-        if fileManager.fileExists(atPath: configURL.path) {
-            try enforce0600Permissions(at: configURL)
-            let fileProvider = try await FileProvider<JSONSnapshot>(filePath: FilePath(configURL.path))
-            providers.append(fileProvider)
+        guard fileManager.fileExists(atPath: configURL.path) else {
+            throw ServerError.missingConfigFile(configURL.path)
         }
 
-        return providers
+        try enforce0600Permissions(at: configURL)
+        let fileProvider = try await FileProvider<JSONSnapshot>(filePath: FilePath(configURL.path))
+        return [fileProvider]
     }
 
     private func enforce0600Permissions(at url: URL) throws {
@@ -66,7 +67,7 @@ struct ConfigLoader {
             let mode = posixPermissions.intValue
             let ownerReadWriteOnly = (mode & 0o077) == 0
             if !ownerReadWriteOnly {
-                throw NSError(domain: "ConfigLoader", code: 1, userInfo: [NSLocalizedDescriptionKey: "Config file permissions must be 0600."])
+                throw ServerError.invalidConfigPermissions
             }
         }
     }

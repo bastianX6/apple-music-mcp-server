@@ -7,10 +7,9 @@
 ## How to run
 - Build from `swift/`: `sh ./install.sh` (outputs to `~/.local/bin/apple-music-mcp`).
 - VS Code mcp.json points to that binary (stdio server).
-- `APPLE_MUSIC_TEAM_ID` (Apple developer team ID)
-- `APPLE_MUSIC_MUSICKIT_ID` (Key ID)
-- `APPLE_MUSIC_PRIVATE_KEY` (PEM; one-line or multiline accepted)
-- `APPLE_MUSIC_USER_TOKEN` is typically persisted by the setup flow; env is optional.
+- Always run `apple-music-mcp setup` first; it writes `~/Library/Application Support/apple-music-mcp/config.json` (or `--config <path>`).
+- `setup` requires the following env vars at invocation time: `APPLE_MUSIC_TEAM_ID`, `APPLE_MUSIC_MUSICKIT_ID`, `APPLE_MUSIC_PRIVATE_KEY`.
+- Runtime reads only from the config file; environment variables are ignored once the server starts.
 
 ## Key behaviors / limitations
 - Library read endpoints work (playlists, songs, albums, artists, recently played, recommendations, heavy rotation).

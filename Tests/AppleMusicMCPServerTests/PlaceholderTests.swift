@@ -1,10 +1,23 @@
 import XCTest
+import Foundation
 import MCP
 @testable import AppleMusicMCPServer
 
 final class PlaceholderTests: XCTestCase {
     func testBootstrapLoadsConfig() async throws {
-        _ = try await ConfigLoader().load()
+        let fm = FileManager.default
+        let tempDir = fm.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try fm.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        let configPath = tempDir.appendingPathComponent("config.json").path
+        var config = AppConfig()
+        config.teamID = "team"
+        config.musicKitKeyID = "kid"
+        config.privateKey = "-----BEGIN PRIVATE KEY-----\nabc\n-----END PRIVATE KEY-----"
+        config.userToken = "user"
+        _ = try SetupHelper.persistConfig(config, configPath: configPath)
+
+        let loaded = try await ConfigLoader(configPath: configPath).load()
+        XCTAssertEqual(loaded.teamID, "team")
     }
 
     func testDeveloperTokenMissingCredentialsThrows() {
