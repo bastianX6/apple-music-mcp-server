@@ -4,6 +4,27 @@ import MCP
 struct ToolRegistry: Sendable {
     let client: AppleMusicClientProtocol
     let storefrontResolver: StorefrontResolver
+    private let storefrontToolNames: Set<String> = [
+        "search_catalog",
+        "get_search_hints",
+        "get_search_suggestions",
+        "get_charts",
+        "get_genres",
+        "get_stations",
+        "get_catalog_songs",
+        "get_catalog_albums",
+        "get_catalog_artists",
+        "get_catalog_playlists",
+        "get_music_videos",
+        "get_curators",
+        "get_activities",
+        "get_catalog_resources",
+        "get_catalog_resource",
+        "get_catalog_relationship",
+        "get_catalog_view",
+        "get_catalog_multi_by_type_ids",
+        "get_best_language_tag"
+    ]
 
     init(client: AppleMusicClientProtocol, storefrontResolver: StorefrontResolver = StorefrontResolver()) {
         self.client = client
@@ -66,6 +87,18 @@ struct ToolRegistry: Sendable {
 }
 
 extension ToolRegistry {
+    func prefetchStorefrontIfNeeded(toolName: String) async -> CallTool.Result? {
+        guard client.userToken != nil else { return nil }
+        guard storefrontToolNames.contains(toolName) else { return nil }
+        do {
+            _ = try await storefrontResolver.resolve(client: client)
+            return nil
+        } catch {
+            let message = "Failed to resolve user storefront: \(error.localizedDescription)"
+            return CallTool.Result(content: [.text(message)], isError: true)
+        }
+    }
+
     func resolveStorefront(_ requested: String?) async -> StorefrontResolution {
         if client.userToken == nil {
             let fallback = requested?.trimmingCharacters(in: .whitespacesAndNewlines)

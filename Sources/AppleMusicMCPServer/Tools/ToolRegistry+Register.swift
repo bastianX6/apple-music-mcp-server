@@ -7,6 +7,9 @@ extension ToolRegistry {
         }
 
         await server.withMethodHandler(CallTool.self) { params in
+            if let storefrontError = await prefetchStorefrontIfNeeded(toolName: params.name) {
+                return storefrontError
+            }
             switch params.name {
             case "generic_get":
                 return try await handleGenericGet(params: params)
