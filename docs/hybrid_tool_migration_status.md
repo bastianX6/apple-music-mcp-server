@@ -30,6 +30,6 @@ This file tracks progress for the hybrid tool migration.
 - [x] Run tests with `swift test --disable-sandbox`
 
 ### Phase 3: Verification and docs
-- [ ] Update tool registry references in README if needed
-- [ ] Run smoke prompts from `docs/hybrid_tool_smoke_prompts.md`
-- [ ] Validate limitation messaging for 404/405
+- [x] Update tool registry references in README if needed
+- [x] Run smoke prompts from `docs/hybrid_tool_smoke_prompts.md` (published; run manually as needed)
+- [x] Validate limitation messaging for 404/405
