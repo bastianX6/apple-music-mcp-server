@@ -14,6 +14,7 @@ These endpoints are documented but frequently return 405 for common resource typ
 2) Add resource to favorites — POST `/v1/me/favorites` — often 405.
 
 **Workarounds:** none known. Tools should surface explicit limitation errors and avoid retries.
+**Doc references:** Apple docs show these as valid endpoints (202 Accepted on success). See “Add a Resource to a Library” and “Add resource to favorites.”
 
 ## Replay Data Availability
 - Replay is documented at GET `/v1/me/music-summaries`.
@@ -26,7 +27,7 @@ These endpoints are documented but frequently return 405 for common resource typ
 
 ## Record Labels and Radio Shows
 - Record labels are documented but often return 404 or empty data in practice.
-- Radio shows are represented via station relationships (`radio-show`) and can be missing in many storefronts.
+- Radio shows are represented via station relationships (`radio-show`) and can be missing in many storefronts; there is no standalone radio-show endpoint documented.
 - Treat these endpoints as best-effort and document their availability clearly.
 
 ## Ratings

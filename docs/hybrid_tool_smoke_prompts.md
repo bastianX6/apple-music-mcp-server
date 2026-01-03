@@ -67,3 +67,10 @@ Each prompt explicitly names the tool to reduce LLM ambiguity. Replace placehold
 
 ## Escape hatch
 44) Call `generic_get` with arguments `{ "path": "v1/catalog/us/search?term=radiohead&types=songs&limit=3" }`.
+
+## Special verification (404/405 prone)
+45) Call `add_library_resources` with arguments `{ "ids": { "songs": "203709340" } }` and record the HTTP status (expect 202 or 405 depending on account permissions).
+46) Call `add_favorites` with arguments `{ "ids": "203709340" }` and record the HTTP status (expect 202 or 405 depending on account permissions).
+47) Call `get_replay_data` with arguments `{ "filter[year]": "<available-year-for-account>", "views": "top-songs" }` and note if the API returns data or 404/empty.
+48) Call `get_catalog_resources` with arguments `{ "type": "record-labels", "ids": "<label-id>" }` to see if the storefront returns data or 404.
+49) Call `get_catalog_relationship` with arguments `{ "type": "stations", "id": "ra.978194965", "relationship": "radio-show" }` and note whether the relationship exists (may return 404/empty).
