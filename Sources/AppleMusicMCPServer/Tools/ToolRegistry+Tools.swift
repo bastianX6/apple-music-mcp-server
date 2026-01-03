@@ -95,7 +95,7 @@ extension ToolRegistry {
             ),
             Tool(
                 name: "get_search_suggestions",
-                description: "Get search suggestions (kinds defaults to terms). Uses the user's storefront when available.",
+                description: "Get search suggestions (kinds defaults to terms). Uses the user's storefront when available. Allowed kinds: terms, activities, albums, artists, curators, music-videos, playlists, record-labels, songs, stations.",
                 inputSchema: .object([
                     "type": .string("object"),
                     "properties": .object([
@@ -933,7 +933,7 @@ extension ToolRegistry {
                         ]),
                         "types": .object([
                             "type": .string("string"),
-                            "description": .string("Comma-separated library types (library-albums,library-artists,library-music-videos,library-playlists,library-songs)")
+                            "description": .string("Comma-separated library types (allowed: library-albums, library-artists, library-music-videos, library-playlists, library-songs)")
                         ]),
                         "limit": .object([
                             "type": .string("integer"),
@@ -982,7 +982,7 @@ extension ToolRegistry {
                         ]),
                         "types": .object([
                             "type": .string("string"),
-                            "description": .string("Comma-separated types (songs,albums,stations,music-videos)")
+                            "description": .string("Comma-separated types (allowed: songs, albums, stations, music-videos)")
                         ]),
                         "include": .object([
                             "type": .string("string"),
@@ -1016,7 +1016,7 @@ extension ToolRegistry {
                         ]),
                         "types": .object([
                             "type": .string("string"),
-                            "description": .string("Comma-separated types (songs,music-videos)")
+                            "description": .string("Comma-separated types (allowed: songs, music-videos)")
                         ]),
                         "include": .object([
                             "type": .string("string"),
@@ -1133,7 +1133,7 @@ extension ToolRegistry {
                         ]),
                         "relationship": .object([
                             "type": .string("string"),
-                            "description": .string("Relationship name")
+                            "description": .string("Relationship name (commonly contents)")
                         ]),
                         "limit": .object([
                             "type": .string("integer"),
@@ -1202,7 +1202,7 @@ extension ToolRegistry {
                         ]),
                         "views": .object([
                             "type": .string("string"),
-                            "description": .string("Comma-separated views (top-artists,top-albums,top-songs)")
+                            "description": .string("Comma-separated views (allowed: top-artists, top-albums, top-songs)")
                         ]),
                         "include": .object([
                             "type": .string("string"),
@@ -1298,17 +1298,17 @@ extension ToolRegistry {
             ),
             Tool(
                 name: "add_library_resources",
-                description: "Add resources to the user library (requires Music-User-Token).",
+                description: "Add resources to the user library (requires Music-User-Token). Allowed ids keys: songs, albums, artists, music-videos, playlists, playlist-folders.",
                 inputSchema: .object([
                     "type": .string("object"),
                     "properties": .object([
                         "ids": .object([
                             "type": .string("object"),
-                            "description": .string("Object keyed by resource type (e.g., {\"songs\": \"123,456\"})")
+                            "description": .string("Object keyed by resource type (allowed keys: songs, albums, artists, music-videos, playlists, playlist-folders)")
                         ]),
                         "resourceType": .object([
                             "type": .string("string"),
-                            "description": .string("Fallback resource type when ids is a string")
+                            "description": .string("Fallback resource type when ids is a string (allowed: songs, albums, artists, music-videos, playlists, playlist-folders)")
                         ]),
                         "l": .object([
                             "type": .string("string"),
@@ -1359,17 +1359,17 @@ extension ToolRegistry {
             ),
             Tool(
                 name: "add_favorites",
-                description: "Add favorites (may return 405).",
+                description: "Add favorites (may return 405). Allowed ids keys: songs, albums, playlists, music-videos, stations.",
                 inputSchema: .object([
                     "type": .string("object"),
                     "properties": .object([
                         "ids": .object([
                             "type": .string("string"),
-                            "description": .string("Comma-separated IDs or object keyed by resource type")
+                            "description": .string("Comma-separated IDs or object keyed by resource type (allowed: songs, albums, playlists, music-videos, stations)")
                         ]),
                         "resourceType": .object([
                             "type": .string("string"),
-                            "description": .string("Resource type when ids is a string (songs,albums,playlists)")
+                            "description": .string("Resource type when ids is a string (allowed: songs, albums, playlists, music-videos, stations)")
                         ]),
                         "l": .object([
                             "type": .string("string"),
@@ -1388,7 +1388,7 @@ extension ToolRegistry {
                     "properties": .object([
                         "resourceType": .object([
                             "type": .string("string"),
-                            "description": .string("Resource type (songs,albums,playlists,library-songs,library-albums,stations)")
+                            "description": .string("Resource type (allowed: songs, albums, playlists, library-songs, library-albums, library-playlists, library-music-videos, music-videos, stations)")
                         ]),
                         "id": .object([
                             "type": .string("string"),
@@ -1396,7 +1396,7 @@ extension ToolRegistry {
                         ]),
                         "value": .object([
                             "type": .string("integer"),
-                            "description": .string("Rating value (e.g., 1 for like, -1 for dislike)")
+                            "description": .string("Rating value (1 for like, -1 for dislike)")
                         ]),
                         "l": .object([
                             "type": .string("string"),
@@ -1415,7 +1415,7 @@ extension ToolRegistry {
                     "properties": .object([
                         "resourceType": .object([
                             "type": .string("string"),
-                            "description": .string("Resource type (songs,albums,playlists,library-songs,library-albums,stations)")
+                            "description": .string("Resource type (allowed: songs, albums, playlists, library-songs, library-albums, library-playlists, library-music-videos, music-videos, stations)")
                         ]),
                         "id": .object([
                             "type": .string("string"),
