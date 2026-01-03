@@ -83,7 +83,7 @@ final class SetupServer: @unchecked Sendable {
         }
         guard let template = try? String(contentsOf: url, encoding: .utf8) else { return nil }
 
-        let appName = "AppleMusicMCPServer"
+        let appName = "apple-music-mcp"
         let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "dev"
 
         let rendered = template

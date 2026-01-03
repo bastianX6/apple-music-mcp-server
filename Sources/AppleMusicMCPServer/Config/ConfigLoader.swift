@@ -1,27 +1,67 @@
+import Configuration
 import Foundation
+import SystemPackage
 
 struct ConfigLoader {
     private let fileManager = FileManager.default
-    private let configPath = "~/.mcp/AppleMusicMCPServer/configs/config.json"
+    private let overrideConfigPath: String?
+    private let defaultConfigPath = "~/Library/Application Support/apple-music-mcp/config.json"
 
-    func load() throws -> AppConfig {
-        let fileConfig = try loadFileConfig()
+    init(configPath: String? = nil) {
+        self.overrideConfigPath = configPath
+    }
+
+    func load() async throws -> AppConfig {
+        let env = ProcessInfo.processInfo.environment
+        let configURL = resolveConfigURL(env: env)
+        let providers = try await makeProviders(configURL: configURL)
+        let reader = ConfigReader(providers: providers)
+
+        let teamID = configValue([
+            "APPLE_MUSIC_TEAM_ID",
+            "appleMusic.teamId"
+        ], reader: reader)
+        let musicKitKeyID = configValue([
+            "APPLE_MUSIC_MUSICKIT_ID",
+            "appleMusic.musicKitKeyId"
+        ], reader: reader)
+        let privateKey = configValue([
+            "APPLE_MUSIC_PRIVATE_KEY",
+            "appleMusic.privateKey"
+        ], reader: reader)
+        let userToken = configValue([
+            "APPLE_MUSIC_USER_TOKEN",
+            "appleMusic.userToken"
+        ], reader: reader)
+
         return AppConfig(
-            teamID: env("APPLE_MUSIC_TEAM_ID") ?? fileConfig.teamID,
-            musicKitKeyID: env("APPLE_MUSIC_MUSICKIT_ID") ?? env("APPLE_MUSIC_MUSICKIT_KEY_ID") ?? fileConfig.musicKitKeyID,
-            privateKey: env("APPLE_MUSIC_PRIVATE_KEY_P8") ?? env("APPLE_MUSIC_PRIVATE_KEY") ?? fileConfig.privateKey,
-            privateKeyPath: env("APPLE_MUSIC_PRIVATE_KEY_PATH") ?? fileConfig.privateKeyPath,
-            bundleID: env("APPLE_MUSIC_BUNDLE_ID") ?? fileConfig.bundleID,
-            userToken: fileConfig.userToken
+            teamID: teamID,
+            musicKitKeyID: musicKitKeyID,
+            privateKey: privateKey,
+            userToken: userToken
         )
     }
 
-    private func loadFileConfig() throws -> AppConfig {
-        let expandedPath = (configPath as NSString).expandingTildeInPath
-        guard fileManager.fileExists(atPath: expandedPath) else { return AppConfig() }
+    private func resolveConfigURL(env: [String: String]) -> URL {
+        let chosen = overrideConfigPath ?? env["APPLE_MUSIC_CONFIG_PATH"] ?? defaultConfigPath
+        let expanded = (chosen as NSString).expandingTildeInPath
+        return URL(fileURLWithPath: expanded)
+    }
 
-        // Enforce user-only permissions (0600) on the config file.
-        let attrs = try fileManager.attributesOfItem(atPath: expandedPath)
+    private func makeProviders(configURL: URL) async throws -> [any ConfigProvider] {
+        var providers: [any ConfigProvider] = [EnvironmentVariablesProvider()]
+
+        if fileManager.fileExists(atPath: configURL.path) {
+            try enforce0600Permissions(at: configURL)
+            let fileProvider = try await FileProvider<JSONSnapshot>(filePath: FilePath(configURL.path))
+            providers.append(fileProvider)
+        }
+
+        return providers
+    }
+
+    private func enforce0600Permissions(at url: URL) throws {
+        let attrs = try fileManager.attributesOfItem(atPath: url.path)
         if let posixPermissions = attrs[.posixPermissions] as? NSNumber {
             let mode = posixPermissions.intValue
             let ownerReadWriteOnly = (mode & 0o077) == 0
@@ -29,12 +69,21 @@ struct ConfigLoader {
                 throw NSError(domain: "ConfigLoader", code: 1, userInfo: [NSLocalizedDescriptionKey: "Config file permissions must be 0600."])
             }
         }
-
-        let data = try Data(contentsOf: URL(fileURLWithPath: expandedPath))
-        return try JSONDecoder().decode(AppConfig.self, from: data)
     }
 
-    private func env(_ key: String) -> String? {
-        ProcessInfo.processInfo.environment[key]
+    private func trimmed(_ value: String?) -> String? {
+        guard let value else { return nil }
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
+    }
+
+    private func configValue(_ keys: [String], reader: ConfigReader) -> String? {
+        for key in keys {
+            let configKey = ConfigKey(stringLiteral: key)
+            if let value = trimmed(reader.string(forKey: configKey)) {
+                return value
+            }
+        }
+        return nil
     }
 }

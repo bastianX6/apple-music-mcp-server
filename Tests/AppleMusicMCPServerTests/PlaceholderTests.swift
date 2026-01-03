@@ -3,8 +3,8 @@ import MCP
 @testable import AppleMusicMCPServer
 
 final class PlaceholderTests: XCTestCase {
-    func testBootstrapLoadsConfig() throws {
-        _ = try ConfigLoader().load()
+    func testBootstrapLoadsConfig() async throws {
+        _ = try await ConfigLoader().load()
     }
 
     func testDeveloperTokenMissingCredentialsThrows() {

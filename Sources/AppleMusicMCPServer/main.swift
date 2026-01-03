@@ -13,8 +13,11 @@ struct AppleMusicMCPServerMain: AsyncParsableCommand {
     struct Run: AsyncParsableCommand {
         static let configuration = CommandConfiguration(abstract: "Start the MCP server.")
 
+        @Option(name: .customLong("config"), help: "Path to a JSON config file (default: ~/Library/Application Support/apple-music-mcp/config.json).")
+        var configPath: String?
+
         func run() async throws {
-            let bootstrap = ServerBootstrap()
+            let bootstrap = ServerBootstrap(configPath: configPath)
             try await bootstrap.start()
         }
     }
@@ -31,7 +34,7 @@ struct AppleMusicMCPServerMain: AsyncParsableCommand {
         @Option(name: .customLong("port"), help: "Port for the local HTTP server (default: 3000).")
         var port: UInt16?
 
-        @Option(name: .customLong("config-path"), help: "Path to config file (default: ~/.mcp/AppleMusicMCPServer/configs/config.json).")
+        @Option(name: .customLong("config-path"), help: "Path to config file (default: ~/Library/Application Support/apple-music-mcp/config.json).")
         var configPath: String?
 
         func run() async throws {

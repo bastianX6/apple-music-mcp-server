@@ -47,13 +47,6 @@ struct DeveloperTokenProvider {
         if let inline = config.privateKey?.trimmingCharacters(in: .whitespacesAndNewlines), inline.isEmpty == false {
             return normalizePEM(inline)
         }
-
-        if let path = config.privateKeyPath?.trimmingCharacters(in: .whitespacesAndNewlines), path.isEmpty == false {
-            let expanded = (path as NSString).expandingTildeInPath
-            let pem = try String(contentsOfFile: expanded, encoding: .utf8)
-            return normalizePEM(pem)
-        }
-
         throw AuthError.missingKey
     }
 

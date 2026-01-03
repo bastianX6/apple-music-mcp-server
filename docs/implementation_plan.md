@@ -19,7 +19,7 @@ Blueprint for migrating the Apple Music MCP server from TypeScript to Swift as a
 - **Auth**: Developer token (ES256 JWT) generated in-process; user token supplied via setup helper or existing JS flow.
 - **HTTP Client**: `URLSession` with async/await; thin wrapper for Apple Music API.
 - **Tools Layer**: Domain-grouped tool registrations mapping to Apple Music endpoints; structured errors.
-- **Config**: Env vars + `~/.mcp/AppleMusicMCPServer/configs/config.json` (0600 perms).
+- **Config**: Env vars + `~/Library/Application Support/apple-music-mcp/config.json` (0600 perms).
 
 ## Package Layout (SPM)
 ```
@@ -58,10 +58,10 @@ apple-music-mcp-server/swift/
 
 ## Authentication Flows
 - **Developer Token**: ES256 JWT with Team ID (`iss`), MusicKit ID (`kid`), exp ~6 months. Cache in memory; renew when <30 days to expiry.
-- **User Token**: Obtained via the integrated setup flow (CLI or browser) or reused from existing TypeScript flow. Stored at `~/.mcp/AppleMusicMCPServer/configs/config.json` with 0600 permissions. Read-only usage in server.
+- **User Token**: Obtained via the integrated setup flow (CLI or browser) or reused from existing TypeScript flow. Stored at `~/Library/Application Support/apple-music-mcp/config.json` with 0600 permissions. Read-only usage in server.
 
 ## Configuration
-- Env vars (precedence): `APPLE_MUSIC_TEAM_ID`, `APPLE_MUSIC_MUSICKIT_ID` (legacy `APPLE_MUSIC_MUSICKIT_KEY_ID`), `APPLE_MUSIC_PRIVATE_KEY_P8` or `APPLE_MUSIC_PRIVATE_KEY` or `APPLE_MUSIC_PRIVATE_KEY_PATH`.
+- Env vars (precedence): `APPLE_MUSIC_TEAM_ID`, `APPLE_MUSIC_MUSICKIT_ID`, `APPLE_MUSIC_PRIVATE_KEY`.
 - Config file fallback: JSON with the same fields plus the user token persisted by setup; user token is read only from the config file. Enforce user-only permissions.
 - Clear error messages when required secrets are missing; server should not crash—surface actionable MCP errors instead.
 
@@ -85,8 +85,8 @@ apple-music-mcp-server/swift/
 - **Setup helper**: test local server callback handling and config file persistence.
 
 ## Build & Run
-- Build: `swift build --product AppleMusicMCPServer`
-- Run server (stdio): `swift run AppleMusicMCPServer`
+- Build: `swift build --product apple-music-mcp`
+- Run server (stdio): `swift run apple-music-mcp`
 - Run setup helper: `swift run AppleMusicMCPSetup`
 - Tests: `swift test`
 

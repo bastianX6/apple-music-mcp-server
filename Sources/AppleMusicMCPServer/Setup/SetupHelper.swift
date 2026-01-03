@@ -1,7 +1,7 @@
 import Foundation
 
 struct SetupHelper {
-    private static let defaultConfigPath = "~/.mcp/AppleMusicMCPServer/configs/config.json"
+    private static let defaultConfigPath = "~/Library/Application Support/apple-music-mcp/config.json"
 
     static func configURL(env: [String: String] = ProcessInfo.processInfo.environment, overridePath: String? = nil) -> URL {
         let override = overridePath ?? env["APPLE_MUSIC_CONFIG_PATH"] ?? defaultConfigPath
@@ -10,20 +10,36 @@ struct SetupHelper {
     }
 
     @discardableResult
-    static func persistUserToken(
-        _ token: String,
+    static func persistConfig(
+        _ config: AppConfig,
         configPath: String? = nil,
         env: [String: String] = ProcessInfo.processInfo.environment
     ) throws -> URL {
-        let trimmed = token.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { throw SetupError.emptyToken }
+        var sanitized = AppConfig(
+            teamID: config.teamID?.trimmingCharacters(in: .whitespacesAndNewlines),
+            musicKitKeyID: config.musicKitKeyID?.trimmingCharacters(in: .whitespacesAndNewlines),
+            privateKey: config.privateKey?.trimmingCharacters(in: .whitespacesAndNewlines),
+            userToken: config.userToken?.trimmingCharacters(in: .whitespacesAndNewlines)
+        )
+
+        if sanitized.userToken == "" { sanitized.userToken = nil }
+        if sanitized.teamID == "" { sanitized.teamID = nil }
+        if sanitized.musicKitKeyID == "" { sanitized.musicKitKeyID = nil }
+        if sanitized.privateKey == "" { sanitized.privateKey = nil }
+
+        if let token = sanitized.userToken, token.isEmpty {
+            throw SetupError.emptyToken
+        }
 
         let url = configURL(env: env, overridePath: configPath)
         let existing = loadConfig(at: url)
-        var updated = existing
-        updated.userToken = trimmed
+        var merged = existing
+        if let teamID = sanitized.teamID { merged.teamID = teamID }
+        if let musicKitKeyID = sanitized.musicKitKeyID { merged.musicKitKeyID = musicKitKeyID }
+        if let privateKey = sanitized.privateKey { merged.privateKey = privateKey }
+        if let userToken = sanitized.userToken { merged.userToken = userToken }
 
-        try writeConfig(updated, to: url)
+        try writeConfig(merged, to: url)
         try enforce0600Permissions(at: url)
         return url
     }
@@ -38,7 +54,9 @@ struct SetupHelper {
     }
 
     private static func writeConfig(_ config: AppConfig, to url: URL) throws {
-        let data = try JSONEncoder().encode(config)
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        let data = try encoder.encode(config)
         let fm = FileManager.default
         let dir = url.deletingLastPathComponent()
         if !fm.fileExists(atPath: dir.path) {

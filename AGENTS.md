@@ -5,16 +5,12 @@
 - Uses Developer Token + Music User Token to access catalog and user endpoints.
 
 ## How to run
-- Build from `swift/`: `sh ./compile.sh` (outputs to `~/.mcp/AppleMusicMCPServer/bin/AppleMusicMCPServer`).
+- Build from `swift/`: `sh ./install.sh` (outputs to `~/.local/bin/apple-music-mcp`).
 - VS Code mcp.json points to that binary (stdio server).
-
-## Required secrets (env or config)
 - `APPLE_MUSIC_TEAM_ID` (Apple developer team ID)
-- `APPLE_MUSIC_MUSICKIT_KEY_ID` (Key ID)
-- `APPLE_MUSIC_PRIVATE_KEY` or `APPLE_MUSIC_PRIVATE_KEY_P8` (PEM; one-line or multiline accepted)
-- Optional: `APPLE_MUSIC_PRIVATE_KEY_PATH` if using a file.
-- `APPLE_MUSIC_BUNDLE_ID` if needed by clients.
-- `APPLE_MUSIC_USER_TOKEN` is not stored here; user tokens are provided at runtime by clients.
+- `APPLE_MUSIC_MUSICKIT_ID` (Key ID)
+- `APPLE_MUSIC_PRIVATE_KEY` (PEM; one-line or multiline accepted)
+- `APPLE_MUSIC_USER_TOKEN` is typically persisted by the setup flow; env is optional.
 
 ## Key behaviors / limitations
 - Library read endpoints work (playlists, songs, albums, artists, recently played, recommendations, heavy rotation).

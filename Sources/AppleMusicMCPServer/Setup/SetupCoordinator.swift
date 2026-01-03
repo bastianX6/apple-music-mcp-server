@@ -8,11 +8,14 @@ struct SetupCoordinator {
     }
 
     func runCLIFlow(token: String?) async throws {
+        let baseConfig = try await loadConfigForSetup()
         let tokenValue = try await resolveToken(provided: token)
         do {
-            let url = try SetupHelper.persistUserToken(tokenValue, configPath: configPath)
+            var updated = baseConfig
+            updated.userToken = tokenValue
+            let url = try SetupHelper.persistConfig(updated, configPath: configPath)
             print("Saved Music-User-Token to \(url.path) with permissions 0600.")
-            print("You can now start AppleMusicMCPServer.")
+            print("You can now start apple-music-mcp.")
         } catch {
             let message = "Failed to persist user token: \(error.localizedDescription)\n"
             FileHandle.standardError.write(Data(message.utf8))
@@ -21,15 +24,17 @@ struct SetupCoordinator {
     }
 
     func runServerFlow(port: UInt16 = 3000) async throws {
-        let config = try loadConfigForSetup()
+        let config = try await loadConfigForSetup()
         let developerToken = try DeveloperTokenProvider().token(using: config)
 
         let tokenStream = AsyncStream<Void>.makeStream()
         let server = SetupServer(port: port, developerToken: developerToken) { token in
             do {
-                let url = try SetupHelper.persistUserToken(token, configPath: configPath)
+                var updated = config
+                updated.userToken = token
+                let url = try SetupHelper.persistConfig(updated, configPath: configPath)
                 print("Saved Music-User-Token to \(url.path) with permissions 0600.")
-                print("You can now start AppleMusicMCPServer.")
+                print("You can now start apple-music-mcp.")
             } catch {
                 let message = "Failed to persist user token: \(error.localizedDescription)\n"
                 FileHandle.standardError.write(Data(message.utf8))
@@ -48,18 +53,8 @@ struct SetupCoordinator {
         server.stop()
     }
 
-    private func loadConfigForSetup() throws -> AppConfig {
-        let env = ProcessInfo.processInfo.environment
-        let url = SetupHelper.configURL(env: env, overridePath: configPath)
-        let fileConfig = SetupHelper.loadConfig(at: url)
-        return AppConfig(
-            teamID: env["APPLE_MUSIC_TEAM_ID"] ?? fileConfig.teamID,
-            musicKitKeyID: env["APPLE_MUSIC_MUSICKIT_ID"] ?? env["APPLE_MUSIC_MUSICKIT_KEY_ID"] ?? fileConfig.musicKitKeyID,
-            privateKey: env["APPLE_MUSIC_PRIVATE_KEY_P8"] ?? env["APPLE_MUSIC_PRIVATE_KEY"] ?? fileConfig.privateKey,
-            privateKeyPath: env["APPLE_MUSIC_PRIVATE_KEY_PATH"] ?? fileConfig.privateKeyPath,
-            bundleID: env["APPLE_MUSIC_BUNDLE_ID"] ?? fileConfig.bundleID,
-            userToken: fileConfig.userToken
-        )
+    private func loadConfigForSetup() async throws -> AppConfig {
+        try await ConfigLoader(configPath: configPath).load()
     }
 
     private func resolveToken(provided: String?) async throws -> String {

@@ -26,12 +26,11 @@ Access public catalog endpoints without user interaction.
 - Cache the token in memory; renew when <30 days from expiration.
 
 ### Configuration Inputs
-- Environment variables (recommended for macOS CLI):
   - `APPLE_MUSIC_TEAM_ID`
-  - `APPLE_MUSIC_MUSICKIT_KEY_ID`
-  - `APPLE_MUSIC_PRIVATE_KEY_P8` (contents) **or** `APPLE_MUSIC_PRIVATE_KEY_PATH`
+  - `APPLE_MUSIC_MUSICKIT_ID`
+  - `APPLE_MUSIC_PRIVATE_KEY` (contents)
   - `APPLE_MUSIC_BUNDLE_ID` (for completeness)
-- Local config file (user-only permissions 0600): `~/.mcp/AppleMusicMCPServer/configs/config.json`
+- Local config file (user-only permissions 0600): `~/Library/Application Support/apple-music-mcp/config.json`
 
 ### Delivery to Requests
 - Include `Authorization: Bearer <developerToken>` on catalog requests.
@@ -52,18 +51,18 @@ Use a helper tool that opens the default browser and leverages **MusicKit JS** f
 2) Generate (or reuse) the current Developer Token to initialize MusicKit.
 3) Serve a static HTML page that calls `MusicKit.configure` and triggers `authorize()`.
 4) On success, MusicKit returns `musicUserToken`; POST it back to the local server.
-5) Persist the token at `~/.mcp/AppleMusicMCPServer/configs/config.json` (0600 perms).
+5) Persist the token at `~/Library/Application Support/apple-music-mcp/config.json` (0600 perms).
 6) The Swift MCP server reads the token on startup.
 
 ### Implementation Notes
-- Integrated setup subcommand (`AppleMusicMCPServer setup --serve`):
+- Integrated setup subcommand (`apple-music-mcp setup --serve`):
   - Uses a lightweight HTTP server bound to 127.0.0.1 and opens the default browser via `NSWorkspace.shared.open` (macOS-only).
   - Serves a static HTML page from `Resources/SetupPage` bundled in the package and posts the MusicKit token back to `/token`.
 - Reuse existing JS flow: You may reuse the TypeScript CLI to produce the user token and point the Swift server to the same config file. Behavior is identical once the token exists.
 
 ### Configuration Inputs
-- Developer token inputs via env/config: `APPLE_MUSIC_TEAM_ID`, `APPLE_MUSIC_MUSICKIT_ID` (or legacy `APPLE_MUSIC_MUSICKIT_KEY_ID`), `APPLE_MUSIC_PRIVATE_KEY_P8` or `APPLE_MUSIC_PRIVATE_KEY` or `APPLE_MUSIC_PRIVATE_KEY_PATH`.
-- User token: `~/.mcp/AppleMusicMCPServer/configs/config.json` (persisted by the integrated setup helper). Env `APPLE_MUSIC_USER_TOKEN` is ignored.
+- Developer token inputs via env/config: `APPLE_MUSIC_TEAM_ID`, `APPLE_MUSIC_MUSICKIT_ID`, `APPLE_MUSIC_PRIVATE_KEY`.
+- User token: `~/Library/Application Support/apple-music-mcp/config.json` (persisted by the integrated setup helper). Env `APPLE_MUSIC_USER_TOKEN` is ignored.
 
 ### Request Headers
 - Attach `Music-User-Token: <userToken>` to all `/v1/me/*` and personalized endpoints.

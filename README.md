@@ -4,48 +4,48 @@ An MCP server that exposes Apple Music API operations (catalog, library, recomme
 
 ## Installation
 
-### Using compile.sh (recommended)
+### Using install.sh (recommended)
 - From the repo root:
    ```bash
-   bash ./compile.sh
+   bash ./install.sh
    ```
-- The script builds `AppleMusicMCPServer` in release and installs the binary to `$HOME/.mcp/AppleMusicMCPServer/bin/AppleMusicMCPServer` (directory is created if missing).
+- The script builds `apple-music-mcp` in release and installs the binary to `$HOME/.local/bin/apple-music-mcp` (directory is created if missing).
 - On Linux, ensure the Swift toolchain (Swift 6) and basic build tools are installed; the script works the same.
 
 ### Manual installation (source-based)
 1) From the Swift package directory (repo root), build in release:
    ```bash
-   swift build -c release --product AppleMusicMCPServer
+   swift build -c release --product apple-music-mcp
    ```
 2) Copy the server binary to your MCP bin path:
    ```bash
-   mkdir -p "$HOME/.mcp/AppleMusicMCPServer/bin"
-   install -m 755 .build/release/AppleMusicMCPServer "$HOME/.mcp/AppleMusicMCPServer/bin/AppleMusicMCPServer"
+   mkdir -p "$HOME/.local/bin"
+   install -m 755 .build/release/apple-music-mcp "$HOME/.local/bin/apple-music-mcp"
    ```
 
 ## Configuration
 
-### Required environment variables (developer token only)
+### Required environment variables (developer token)
 - `APPLE_MUSIC_TEAM_ID`
-- `APPLE_MUSIC_MUSICKIT_ID` (or legacy `APPLE_MUSIC_MUSICKIT_KEY_ID`)
-- One of `APPLE_MUSIC_PRIVATE_KEY_P8` or `APPLE_MUSIC_PRIVATE_KEY` (contents) or `APPLE_MUSIC_PRIVATE_KEY_PATH` (path to .p8)
+- `APPLE_MUSIC_MUSICKIT_ID`
+- `APPLE_MUSIC_PRIVATE_KEY` (inline PEM)
 
-User token is loaded exclusively from the config file written by `setup`; `APPLE_MUSIC_USER_TOKEN` is ignored.
+User token is normally written by the `setup` command into the config file; optionally it can be provided via `APPLE_MUSIC_USER_TOKEN`.
 
 ### User token setup
 - CLI mode (persist an existing token):
    ```bash
-   swift run AppleMusicMCPServer setup --token "<user-token>"
+   swift run apple-music-mcp setup --token "<user-token>"
    # Using the installed binary
-   $HOME/.mcp/AppleMusicMCPServer/bin/AppleMusicMCPServer setup --token "<user-token>"
+   $HOME/.local/bin/apple-music-mcp setup --token "<user-token>"
    ```
 - Browser helper mode (local server + MusicKit flow):
    ```bash
-   swift run AppleMusicMCPServer setup --serve --port 3000
+   swift run apple-music-mcp setup --serve --port 3000
    # Using the installed binary
-   $HOME/.mcp/AppleMusicMCPServer/bin/AppleMusicMCPServer setup --serve --port 3000
+   $HOME/.local/bin/apple-music-mcp setup --serve --port 3000
    ```
-   This opens your default browser (via `open` on macOS or `xdg-open` if available on Linux) for Apple Music authorization and writes `~/.mcp/AppleMusicMCPServer/configs/config.json` with `0600` permissions once the token is received.
+   This opens your default browser (via `open` on macOS or `xdg-open` if available on Linux) for Apple Music authorization and writes `~/Library/Application Support/apple-music-mcp/config.json` with `0600` permissions once the token is received (including team ID, MusicKit ID, and private key if available from env).
 - Alternatively, place an existing user token in that config file if you already have one.
 
 ### Running the server
@@ -53,15 +53,15 @@ User token is loaded exclusively from the config file written by `setup`; `APPLE
    ```bash
    APPLE_MUSIC_TEAM_ID="<team>" \
    APPLE_MUSIC_MUSICKIT_ID="<kid>" \
-   APPLE_MUSIC_PRIVATE_KEY_PATH="/path/to/AuthKey.p8" \
-   swift run AppleMusicMCPServer
+   APPLE_MUSIC_PRIVATE_KEY="$(cat /path/to/AuthKey.p8)" \
+   swift run apple-music-mcp
    ```
-- Using installed binary (after `compile.sh` or manual install):
+- Using installed binary (after `install.sh` or manual install):
    ```bash
    APPLE_MUSIC_TEAM_ID="<team>" \
    APPLE_MUSIC_MUSICKIT_ID="<kid>" \
-   APPLE_MUSIC_PRIVATE_KEY_PATH="/path/to/AuthKey.p8" \
-   $HOME/.mcp/AppleMusicMCPServer/bin/AppleMusicMCPServer
+   APPLE_MUSIC_PRIVATE_KEY="$(cat /path/to/AuthKey.p8)" \
+   $HOME/.local/bin/apple-music-mcp
    ```
 
 ## Tests
