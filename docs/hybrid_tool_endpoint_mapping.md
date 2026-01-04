@@ -3,6 +3,8 @@
 This mapping covers every endpoint listed in `docs/apple_music_api_endpoints.md`.
 Use intent tools when possible; otherwise use the generic tools listed here.
 
+> **Note:** `generic_get` stays documented for completeness but is currently disabled in the MCP server, so any endpoints mapped to it are temporarily unavailable.
+
 | Method | Path | Title | Tool |
 | --- | --- | --- | --- |
 | GET | `v1/catalog/{storefront}` | Get Multiple Catalog Resources Using Resource-Typed ID Parameters | `get_catalog_multi_by_type_ids` |

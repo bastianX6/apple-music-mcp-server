@@ -10,6 +10,9 @@ extension ToolRegistry {
             if let storefrontError = await prefetchStorefrontIfNeeded(toolName: params.name) {
                 return storefrontError
             }
+            if disabledToolNames.contains(params.name) {
+                return CallTool.Result(content: [.text("Tool \(params.name) is currently disabled")], isError: true)
+            }
             switch params.name {
             case "generic_get":
                 return try await handleGenericGet(params: params)

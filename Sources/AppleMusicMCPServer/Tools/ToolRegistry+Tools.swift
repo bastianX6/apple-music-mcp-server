@@ -2,6 +2,14 @@ import MCP
 
 extension ToolRegistry {
     var tools: [Tool] {
+        allTools.filter { !disabledToolNames.contains($0.name) }
+    }
+
+    var disabledToolNames: Set<String> {
+        ["generic_get"]
+    }
+
+    private var allTools: [Tool] {
         [
             Tool(
                 name: "generic_get",

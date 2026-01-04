@@ -66,7 +66,7 @@ Catalog region resolved to CL. All calls used valid Music-User-Token. Library pl
 43) delete_rating resourceType=songs id=203709340 → EMPTY (delete succeeded).
 
 ## Escape hatch
-44) generic_get v1/catalog/us/search?term=radiohead&types=songs&limit=3 → OK (3 songs, next link present).
+44) generic_get v1/catalog/us/search?term=radiohead&types=songs&limit=3 → SKIPPED (tool disabled in MCP server).
 
 ## Special verification (404/405 prone)
 45) add_library_resources songs=203709340 → EMPTY (same behavior as step 40).
@@ -76,6 +76,7 @@ Catalog region resolved to CL. All calls used valid Music-User-Token. Library pl
 49) get_catalog_relationship stations/ra.978194965 radio-show → 404 (No related resources).
 
 ## Notes
+- `generic_get` remains implemented but is intentionally disabled; skip escape-hatch checks until it is re-enabled.
 - Replay works when requesting filter[year]=latest; resolves to year-2025 and returns top-songs and top-artists with pagination.
 - Apple often returns empty bodies for add-to-library/favorites even when not applied; no explicit 405 surfaced in this run.
 - Playlist track add (step 38) returned empty body; assume accepted since no error returned.

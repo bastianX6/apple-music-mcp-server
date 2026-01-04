@@ -66,7 +66,7 @@ Each prompt explicitly names the tool to reduce LLM ambiguity. Replace placehold
 43) Call `delete_rating` with arguments `{ "resourceType": "songs", "id": "203709340" }`.
 
 ## Escape hatch
-44) Call `generic_get` with arguments `{ "path": "v1/catalog/us/search?term=radiohead&types=songs&limit=3" }`.
+44) Confirm that `generic_get` is not listed by `list_tools` (the tool is intentionally disabled in MCP) and skip any direct calls.
 
 ## Special verification (404/405 prone)
 45) Call `add_library_resources` with arguments `{ "ids": { "songs": "203709340" } }` and record the HTTP status (expect 202 or 405 depending on account permissions).

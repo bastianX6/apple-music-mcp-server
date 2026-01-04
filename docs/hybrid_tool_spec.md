@@ -5,7 +5,7 @@ This document defines the proposed hybrid tool surface. It is designed for LLM-f
 ## Design Principles
 - Prefer intent-based tools for common tasks.
 - Use a small set of generic tools for relationships, views, and typed-id queries.
-- Keep `generic_get` only as a fallback.
+- Keep `generic_get` implemented but disabled by default; re-enable only for emergency coverage.
 
 ## Tool Selection Guidance (LLM-Friendly)
 Choose the most specific tool that matches the user intent, in this order:
@@ -13,7 +13,7 @@ Choose the most specific tool that matches the user intent, in this order:
 2) Relationship and view tools (`get_catalog_relationship`, `get_catalog_view`, `get_library_relationship`).
 3) Generic resource tools (`get_catalog_resources`, `get_catalog_resource`, `get_library_resources`, `get_library_resource`).
 4) Typed-id multi fetch (`get_catalog_multi_by_type_ids`, `get_library_multi_by_type_ids`).
-5) `generic_get` only when no tool is mapped.
+5) Reserved fallback (`generic_get`) only if re-enabled; it is currently disabled.
 
 ## Auth Rules
 - Catalog endpoints: Developer Token.
@@ -147,10 +147,10 @@ These tools cover relationships, views, and rarely used resources.
   - Required: `resourceType`, `id`, `value` (like/dislike per Ratings API)
 - `delete_rating` (DELETE `/v1/me/ratings/{resourceType}/{id}`)
   - Required: `resourceType`, `id`
-  - Read-only ratings endpoints are covered via `generic_get` for now.
+  - Read-only ratings endpoints remain unmapped while `generic_get` is disabled.
 
 ## Utility
 - `get_best_language_tag` (GET `/v1/language/{storefront}/tag`)
   - Required: `acceptLanguage`, `storefront`
-- `generic_get` (GET `/v1/{endpoint}`)
-  - Used only when a new endpoint is not yet mapped.
+
+> `generic_get` stays in the codebase for future fallback needs but is not exposed by the MCP server unless explicitly enabled.

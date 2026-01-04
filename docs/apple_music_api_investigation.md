@@ -15,7 +15,7 @@ The Apple Music API exposes a large, structured REST surface. This repo is movin
   - Catalog relationships (`/{relationship}`) and views (`/view/{view}`)
   - Library resources and relationships
   - Multi-type typed-id fetches for catalog/library
-- **Fallback**: `generic_get` for unmapped endpoints only.
+- **Fallback**: `generic_get` remains in the code but is disabled unless a future gap requires it.
 
 See `docs/hybrid_tool_spec.md` for the proposed tool surface and `docs/hybrid_tool_endpoint_mapping.md` for full coverage.
 

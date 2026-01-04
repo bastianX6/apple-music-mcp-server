@@ -6,7 +6,7 @@ Move from a mostly one-tool-per-endpoint surface to a hybrid approach that is LL
 Hybrid approach:
 - Keep explicit, intent-based tools for common user tasks.
 - Add a small set of generic tools that cover the long tail (relationships, views, typed-id queries, and less common resources).
-- Keep `generic_get` as an escape hatch only.
+- Keep `generic_get` implemented for emergencies, but leave it disabled unless explicitly re-approved.
 
 ## Scope
 - Add new tools to cover every endpoint listed in `docs/apple_music_api_endpoints.md`.
