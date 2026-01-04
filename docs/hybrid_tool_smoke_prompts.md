@@ -46,7 +46,7 @@ Each prompt explicitly names the tool to reduce LLM ambiguity. Replace placehold
 31) Call `get_recommendation` with arguments `{ "id": "<recommendation-id>" }`.
 32) Call `get_recommendation_relationship` with arguments `{ "id": "<recommendation-id>", "relationship": "contents", "limit": 5 }`.
 33) Call `get_heavy_rotation` with arguments `{ "limit": 5 }`.
-34) Call `get_replay_data` with arguments `{ "filter[year]": "2025", "views": "top-songs" }`.
+34) Call `get_replay_data` with arguments `{ "filter[year]": "latest", "views": "top-songs,top-artists" }` (per Apple doc, year must be latest).
 
 ## Storefront and language
 35) Call `get_user_storefront` with arguments `{}`.
@@ -71,6 +71,6 @@ Each prompt explicitly names the tool to reduce LLM ambiguity. Replace placehold
 ## Special verification (404/405 prone)
 45) Call `add_library_resources` with arguments `{ "ids": { "songs": "203709340" } }` and record the HTTP status (expect 202 or 405 depending on account permissions).
 46) Call `add_favorites` with arguments `{ "ids": "203709340", "resourceType": "songs" }` and record the HTTP status (expect 202 or 405 depending on account permissions).
-47) Call `get_replay_data` with arguments `{ "filter[year]": "2025", "views": "top-songs" }` and note if the API returns data or 404/empty.
+47) Call `get_replay_data` with arguments `{ "filter[year]": "latest", "views": "top-songs,top-artists" }` and note if the API returns data or 404/empty.
 48) Call `get_catalog_resources` with arguments `{ "type": "record-labels", "ids": "<label-id>" }` to see if the storefront returns data or 404.
 49) Call `get_catalog_relationship` with arguments `{ "type": "stations", "id": "ra.978194965", "relationship": "radio-show" }` and note whether the relationship exists (may return 404/empty).

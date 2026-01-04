@@ -1,6 +1,6 @@
-# Hybrid Tool Smoke Results (partial)
+# Hybrid Tool Smoke Results (full rerun)
 
-Ran steps 1–28 from docs/hybrid_tool_smoke_prompts.md. Catalog region resolved to CL. Library/user calls used provided Music-User-Token.
+Catalog region resolved to CL. All calls used valid Music-User-Token. Library placeholders replaced with real IDs from this session.
 
 ## Catalog search
 1) search_catalog term=radiohead types=songs,albums limit=5 → OK (songs + albums returned).
@@ -25,52 +25,57 @@ Ran steps 1–28 from docs/hybrid_tool_smoke_prompts.md. Catalog region resolved
 16) get_catalog_multi_by_type_ids songs=203709340, albums=310730204 → OK (both returned).
 
 ## Library convenience tools (Music-User-Token)
-17) get_library_playlists limit=5 → OK (5 playlists, next link present).
-18) get_library_songs limit=5 → OK (5 songs, next link present).
-19) get_library_albums limit=5 → OK (5 albums, next link present).
-20) get_library_artists limit=5 → OK (5 artists, next link present).
-21) library_search term=radiohead types=library-songs limit=5 → OK (5 hits).
-22) get_library_recently_added → OK (10 items; mix of albums/playlists).
+17) get_library_playlists limit=5 → OK (5 playlists, e.g., p.5PG5gooiEE7ZQg "All2").
+18) get_library_songs limit=5 → OK (5 songs, e.g., i.EYVA0QbseeGJWD "A Change is Gonna Come").
+19) get_library_albums limit=5 → OK (5 albums, e.g., l.FaeLKCi "A / B").
+20) get_library_artists limit=5 → OK (5 artists returned).
+21) library_search term=radiohead types=library-songs limit=5 → OK (5 Radiohead songs with library IDs).
+22) get_library_recently_added → OK (10 items; mix of albums/playlists, including p.2P6WelKC66XLoq and l.q2LW5Xk).
 
 ## Library generic tools
-23) get_library_resources type=playlists ids=p.123456789 → OK (stub playlist returned, non-editable).
-24) get_library_resource type=albums id=l.123456789 → 404 (Resource Not Found).
-25) get_library_relationship playlists/p.123456789 tracks limit=5 → 404 (No related resources).
-26) get_library_multi_by_type_ids {library-songs:l.123, library-albums:l.456} → EMPTY.
+23) get_library_resources type=playlists ids=p.5PG5gooiEE7ZQg → OK (editable playlist "All2", SongShift import).
+24) get_library_resource type=albums id=l.FaeLKCi → OK (album "A / B" with tracks relationship).
+25) get_library_relationship playlists/p.5PG5gooiEE7ZQg tracks limit=5 → OK (5 tracks returned, next present; total=615).
+26) get_library_multi_by_type_ids {library-songs:i.EYVA0QbseeGJWD, library-albums:l.FaeLKCi} → OK (both returned).
 
 ## User history and recommendations
-27) get_recently_played limit=5 → OK (4 playlists returned, next link present).
+27) get_recently_played limit=5 → OK (4 playlists, next link present).
 28) get_recently_played_tracks limit=5 types=songs → OK (5 songs, next link present).
 29) get_recently_played_stations limit=5 → OK (3 stations; next link present).
-30) get_recommendations limit=5 → OK (multiple personal-recommendation blocks with playlists/albums/stations; next link present).
-31) get_heavy_rotation limit=5 → OK (mix of library playlists/albums; next link present).
-32) get_replay_data filter[year]=2024 views=top-songs → 400 (Bad Request: No filters supplied).
-33) get_user_storefront {} → OK (storefront cl, explicit allowed, default language es-MX).
-34) get_best_language_tag storefront=us acceptLanguage=es-ES → OK (es-MX).
-35) get_recommendation id=6-27s5hU6azhJY → OK (Hechos para ti playlists bundle returned).
-36) get_recommendation_relationship id=6-27s5hU6azhJY relationship=contents limit=5 → OK (playlists: Chill, Nueva música, En loop, Tus essentials, ¡Anímate!).
+30) get_recommendations limit=5 → OK (multiple recommendation blocks with playlists/albums/stations; next link present).
+31) get_recommendation id=6-27s5hU6azhJY → OK (Hechos para ti playlists bundle returned).
+32) get_recommendation_relationship id=6-27s5hU6azhJY relationship=contents limit=5 → OK (playlists: Chill, Nueva música, En loop, Tus essentials, ¡Anímate!).
+33) get_heavy_rotation limit=5 → OK (library playlists and albums returned; next link present).
+34) get_replay_data filter[year]=latest views=top-songs,top-artists → OK (resolved to year-2025; both views returned with next links).
+
+## Storefront and language
+35) get_user_storefront {} → OK (storefront cl, explicit allowed, default language es-MX).
+36) get_best_language_tag storefront=us acceptLanguage=es-ES → OK (es-MX).
 
 ## Playlist management
-37) create_playlist name="Smoke Test Playlist" → OK (library-playlists id=p.2P6WelKC66XLoq, editable).
-38) add_playlist_tracks playlistId=p.123456789 trackIds=203709340,203709341 → 404 (Resource Not Found in user library).
-39) create_playlist_folder name="Smoke Test Folder" → OK (library-playlist-folders id=p.pmrA8LguggazJ9).
+37) create_playlist name="Smoke Test Playlist" → OK (library-playlists id=p.5PG50posEE7ZQg, editable).
+38) add_playlist_tracks playlistId=p.5PG50posEE7ZQg trackIds=203709340,203709341 → EMPTY body (request accepted; no error surfaced).
+39) create_playlist_folder name="Smoke Test Folder" → OK (library-playlist-folders id=p.8Wx6k0BI22YxPv).
 
-## Library / favorites / ratings / escape hatch
-40) add_library_resources songs=203709340 → EMPTY (no body returned; likely accepted or ignored).
-41) add_favorites ids=203709340 → 400 (Invalid Parameter Value: single resource type required).
-42) set_rating resourceType=songs id=1097862231 value=1 → OK (rating created value=1).
-43) delete_rating resourceType=songs id=1097862231 → EMPTY (delete succeeded).
+## Add to library / favorites (expected 405 in many cases)
+40) add_library_resources songs=203709340 → EMPTY (no status body; likely accepted or ignored by Apple).
+41) add_favorites ids=203709340 resourceType=songs → EMPTY (no status body; Apple often returns 405/empty).
+
+## Ratings (requires Music-User-Token)
+42) set_rating resourceType=songs id=203709340 value=1 → OK (rating created value=1).
+43) delete_rating resourceType=songs id=203709340 → EMPTY (delete succeeded).
+
+## Escape hatch
 44) generic_get v1/catalog/us/search?term=radiohead&types=songs&limit=3 → OK (3 songs, next link present).
-45) add_library_resources songs=203709340 → EMPTY (same behavior as step 40).
-46) add_favorites ids=203709340 → 400 (same invalid parameter value error).
-47) get_replay_data filter[year]=2023 views=top-songs → 400 (Bad Request: No filters supplied).
 
-## Special verification
-48) get_catalog_resources type=record-labels ids=1234 → EMPTY (no data).
+## Special verification (404/405 prone)
+45) add_library_resources songs=203709340 → EMPTY (same behavior as step 40).
+46) add_favorites ids=203709340 resourceType=songs → EMPTY (same behavior as step 41).
+47) get_replay_data filter[year]=latest views=top-songs,top-artists → OK (same as step 34; year-2025 data with next links).
+48) get_catalog_resources type=record-labels ids=1234 → EMPTY (no data; record labels appear unsupported).
 49) get_catalog_relationship stations/ra.978194965 radio-show → 404 (No related resources).
 
-## Follow-up fix notes (for LLM remediation)
-- Use real library IDs: reuse playlistId from step 17 or the playlist created in step 37, albumId from step 19, and songId from step 18; prompts updated accordingly to avoid placeholders.
-- `get_replay_data` still returned 400 “No filters supplied” when called with `filter[year]` and `views`. Apple docs list `filter[year]` as required; rerun with an available year for the account (latest year with Replay data) and the view `top-songs|top-albums|top-artists`.
-- `add_favorites` now requires `resourceType` when ids is a string (tool updated); re-run with `{ "ids": "<songId>", "resourceType": "songs" }`.
-- `get_catalog_relationship` step 49 (stations radio-show) may require a station that exposes a radio-show relationship; try a different station id if needed.
+## Notes
+- Replay works when requesting filter[year]=latest; resolves to year-2025 and returns top-songs and top-artists with pagination.
+- Apple often returns empty bodies for add-to-library/favorites even when not applied; no explicit 405 surfaced in this run.
+- Playlist track add (step 38) returned empty body; assume accepted since no error returned.

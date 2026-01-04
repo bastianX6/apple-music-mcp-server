@@ -1198,11 +1198,11 @@ extension ToolRegistry {
                     "properties": .object([
                         "filter[year]": .object([
                             "type": .string("string"),
-                            "description": .string("Replay year")
+                            "description": .string("Required replay year filter. Value must be 'latest'.")
                         ]),
                         "views": .object([
                             "type": .string("string"),
-                            "description": .string("Comma-separated views (allowed: top-artists, top-albums, top-songs)")
+                            "description": .string("Comma-separated views (optional). Allowed: top-artists, top-albums, top-songs.")
                         ]),
                         "include": .object([
                             "type": .string("string"),

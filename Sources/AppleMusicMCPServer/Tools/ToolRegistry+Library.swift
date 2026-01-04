@@ -389,14 +389,23 @@ extension ToolRegistry {
 
     func handleGetReplayData(params: CallTool.Parameters) async throws -> CallTool.Result {
         if let errorResult = requireUserToken() { return errorResult }
-        let filterYear = params.arguments?["filter[year]"]?.stringValue ?? params.arguments?["year"]?.stringValue
-        guard let filterYear, !filterYear.isEmpty else {
-            return CallTool.Result(content: [.text("Missing required argument 'filter[year]'.")], isError: true)
+        guard let filterYear = params.arguments?["filter[year]"]?.stringValue, !filterYear.isEmpty else {
+            return CallTool.Result(content: [.text("Missing required argument 'filter[year]'. Must be 'latest' per Apple Music API.")], isError: true)
+        }
+        guard filterYear == "latest" else {
+            return CallTool.Result(content: [.text("Invalid 'filter[year]' value. Per Apple Music API, use 'latest'.")], isError: true)
         }
 
-        var queryItems: [URLQueryItem] = [
-            URLQueryItem(name: "filter[year]", value: filterYear)
-        ]
+        if let viewsValue = params.arguments?["views"]?.stringValue, !viewsValue.isEmpty {
+            let allowed = Set(["top-artists", "top-albums", "top-songs"])
+            let values = viewsValue.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+            let invalid = values.filter { !allowed.contains($0) }
+            if !invalid.isEmpty {
+                return CallTool.Result(content: [.text("Invalid views: \(invalid.joined(separator: ", ")). Allowed: top-artists, top-albums, top-songs.")], isError: true)
+            }
+        }
+
+        var queryItems: [URLQueryItem] = [URLQueryItem(name: "filter[year]", value: "latest")]
         queryItems.append(contentsOf: optionalQueryItems(from: params, allowed: ["include", "extend", "l", "views"]))
 
         do {
