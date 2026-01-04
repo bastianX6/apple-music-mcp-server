@@ -647,11 +647,13 @@ extension ToolRegistry {
             } else {
                 let ids = stringList(from: idsValue).joined(separator: ",")
                 if !ids.isEmpty {
-                    if let resourceType = params.arguments?["resourceType"]?.stringValue, !resourceType.isEmpty {
-                        queryItems.append(URLQueryItem(name: "ids[\(resourceType)]", value: ids))
-                    } else {
-                        queryItems.append(URLQueryItem(name: "ids", value: ids))
+                    guard let resourceType = params.arguments?["resourceType"]?.stringValue, !resourceType.isEmpty else {
+                        return CallTool.Result(
+                            content: [.text("Missing required argument 'resourceType' when 'ids' is a string. Provide ids as an object keyed by resource type or include resourceType.")],
+                            isError: true
+                        )
                     }
+                    queryItems.append(URLQueryItem(name: "ids[\(resourceType)]", value: ids))
                 }
             }
         }

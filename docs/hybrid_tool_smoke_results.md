@@ -70,7 +70,7 @@ Ran steps 1–28 from docs/hybrid_tool_smoke_prompts.md. Catalog region resolved
 49) get_catalog_relationship stations/ra.978194965 radio-show → 404 (No related resources).
 
 ## Follow-up fix notes (for LLM remediation)
-- Library IDs used in steps 23/24/25/38 are not real (e.g., p.123456789, l.123456789, l.123, l.456). Replace with real library IDs or mock fixtures before re-running `get_library_resource`, `get_library_relationship`, and `add_playlist_tracks`.
-- `get_replay_data` returned 400 “No filters supplied” for both years 2024 and 2023. Identify mandatory query parameters (likely `views` and `filter[year]`, possibly storefront or additional filters) and enforce them in the tool schema so calls include the required fields.
-- `add_favorites` returned 400 “Invalid Parameter Value: Please provide a single (1) resource type”. The tool likely needs explicit resourceType-specific parameterization (e.g., songs vs albums vs playlists) and should surface required parameters in the schema to avoid ambiguous ids-only calls.
-- `get_catalog_relationship` step 49 used stations/ra.978194965 radio-show and returned 404; this may be an unsupported relationship or requires a different station id. Confirm valid relationship targets and update prompts or tool guidance accordingly.
+- Use real library IDs: reuse playlistId from step 17 or the playlist created in step 37, albumId from step 19, and songId from step 18; prompts updated accordingly to avoid placeholders.
+- `get_replay_data` still returned 400 “No filters supplied” when called with `filter[year]` and `views`. Apple docs list `filter[year]` as required; rerun with an available year for the account (latest year with Replay data) and the view `top-songs|top-albums|top-artists`.
+- `add_favorites` now requires `resourceType` when ids is a string (tool updated); re-run with `{ "ids": "<songId>", "resourceType": "songs" }`.
+- `get_catalog_relationship` step 49 (stations radio-show) may require a station that exposes a radio-show relationship; try a different station id if needed.

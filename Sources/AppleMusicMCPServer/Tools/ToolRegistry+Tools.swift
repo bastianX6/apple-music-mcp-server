@@ -1359,13 +1359,13 @@ extension ToolRegistry {
             ),
             Tool(
                 name: "add_favorites",
-                description: "Add favorites (may return 405). Allowed ids keys: songs, albums, playlists, music-videos, stations.",
+                description: "Add favorites (may return 405). When ids is a string, resourceType is required. Allowed ids keys: songs, albums, playlists, music-videos, stations.",
                 inputSchema: .object([
                     "type": .string("object"),
                     "properties": .object([
                         "ids": .object([
                             "type": .string("string"),
-                            "description": .string("Comma-separated IDs or object keyed by resource type (allowed: songs, albums, playlists, music-videos, stations)")
+                            "description": .string("Comma-separated IDs (with resourceType) or object keyed by resource type (allowed: songs, albums, playlists, music-videos, stations)")
                         ]),
                         "resourceType": .object([
                             "type": .string("string"),

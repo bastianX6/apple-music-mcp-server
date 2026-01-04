@@ -139,8 +139,8 @@ These tools cover relationships, views, and rarely used resources.
   - Required: `ids` object keyed by resource type (translated to `ids[resourceType]=...`).
   - Note: Apple often returns 405 for songs/albums; document limitation.
 - `add_favorites` (POST `/v1/me/favorites`)
-  - Required: `ids`
-  - Note: Often returns 405; document limitation.
+  - Required: `ids` plus `resourceType` when ids is a string; or provide `ids` as an object keyed by resource type.
+  - Note: Often returns 405; document limitation and enforce single resource type.
 
 ## Ratings Tools
 - `set_rating` (PUT `/v1/me/ratings/{resourceType}/{id}`)

@@ -18,8 +18,8 @@ Prompts orientados a casos de usuario. Cada uno nombra explícitamente el tool p
 11) Lista mis playlists (máximo 5) usando `get_library_playlists` `{ "limit": 5 }`.
 12) Lista mis canciones recientes en librería usando `get_library_songs` `{ "limit": 5 }`.
 13) Busca en mi librería la canción “Imagine” con `library_search` `{ "term": "Imagine", "types": "library-songs", "limit": 3 }`.
-14) Obtén recursos de librería mixtos usando `get_library_multi_by_type_ids` `{ "ids": { "library-songs": "<librarySongId>", "library-albums": "<libraryAlbumId>" } }`.
-15) Trae relaciones de una playlist de librería (tracks) con `get_library_relationship` `{ "type": "playlists", "id": "<playlistId>", "relationship": "tracks", "limit": 5 }`.
+14) Obtén recursos de librería mixtos usando `get_library_multi_by_type_ids` `{ "ids": { "library-songs": "<librarySongIdFromStep12Or13>", "library-albums": "<libraryAlbumIdFromStep19OrRecentlyAdded>" } }`.
+15) Trae relaciones de una playlist de librería (tracks) con `get_library_relationship` `{ "type": "playlists", "id": "<playlistIdFromStep11Or24>", "relationship": "tracks", "limit": 5 }`.
 16) Verifica recently-added con `get_library_recently_added` `{}`.
 
 ## User history & recommendations (requires Music-User-Token)
@@ -29,16 +29,16 @@ Prompts orientados a casos de usuario. Cada uno nombra explícitamente el tool p
 20) Pide recomendaciones (top 3) con `get_recommendations` `{ "limit": 3 }`; luego pide el detalle de la primera con `get_recommendation` `{ "id": "<recoId>" }`.
 21) Pide la relación de contenidos de esa recomendación con `get_recommendation_relationship` `{ "id": "<recoId>", "relationship": "contents", "limit": 5 }`.
 22) Pide heavy rotation con `get_heavy_rotation` `{ "limit": 5 }`.
-23) Pide replay data del último año disponible con `get_replay_data` `{ "filter[year]": "<year>", "views": "top-songs" }`.
+23) Pide replay data del último año disponible (usa 2025 si no sabes) con `get_replay_data` `{ "filter[year]": "2025", "views": "top-songs" }`.
 
 ## Playlist management (requires Music-User-Token)
 24) Crea una playlist “LLM Test Mix” con `create_playlist` `{ "name": "LLM Test Mix", "description": "Smoke test playlist" }`.
-25) Añade 2 tracks a esa playlist con `add_playlist_tracks` `{ "playlistId": "<newPlaylistId>", "trackIds": "<songId1>,<songId2>" }`.
+25) Añade 2 tracks a esa playlist con `add_playlist_tracks` `{ "playlistId": "<newPlaylistId>", "trackIds": "<songId1FromCatalogSearch>,<songId2FromCatalogSearch>" }`.
 26) Crea una carpeta de playlists “LLM Folder” con `create_playlist_folder` `{ "name": "LLM Folder" }`.
 
 ## Library add/favorites & ratings (requires Music-User-Token; may 405)
 27) Intenta agregar una canción a librería con `add_library_resources` `{ "ids": { "songs": "<songId>" } }` y registra el status (202 o 405).
-28) Intenta marcar favoritos con `add_favorites` `{ "ids": "<songId>" }` y registra el status (202 o 405).
+28) Intenta marcar favoritos con `add_favorites` `{ "ids": "<songId>", "resourceType": "songs" }` y registra el status (202 o 405).
 29) Marca like a una canción con `set_rating` `{ "resourceType": "songs", "id": "<songId>", "value": 1 }`, luego bórralo con `delete_rating` `{ "resourceType": "songs", "id": "<songId>" }`.
 
 ## Utility
