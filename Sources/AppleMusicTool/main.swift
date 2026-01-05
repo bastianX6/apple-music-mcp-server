@@ -31,8 +31,24 @@ struct AppleMusicToolMain: AsyncParsableCommand {
             LibrarySearchCommand.self,
             GetLibraryRecentlyAddedCommand.self,
             GetRecentlyPlayedCommand.self,
+            GetRecentlyPlayedTracksCommand.self,
+            GetRecentlyPlayedStationsCommand.self,
+            GetRecommendationsCommand.self,
+            GetRecommendationCommand.self,
+            GetRecommendationRelationshipCommand.self,
+            GetHeavyRotationCommand.self,
+            GetReplayDataCommand.self,
             GetRecordLabelsCommand.self,
-            GetLibraryPlaylistsCommand.self
+            GetLibraryPlaylistsCommand.self,
+            CreatePlaylistCommand.self,
+            AddPlaylistTracksCommand.self,
+            CreatePlaylistFolderCommand.self,
+            AddLibraryResourcesCommand.self,
+            AddLibrarySongsCommand.self,
+            AddLibraryAlbumsCommand.self,
+            AddFavoritesCommand.self,
+            SetRatingCommand.self,
+            DeleteRatingCommand.self
         ],
         helpNames: [.long, .short]
     )
