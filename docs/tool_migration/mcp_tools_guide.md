@@ -4,6 +4,9 @@ This document describes the **current tool surface exposed by the `apple-music-m
 It is intended as the source of truth for migrating the same capabilities to a standalone CLI.
 
 ## See also
+- `docs/tool_migration/README.md:1` (entry point for all migration docs)
+- `docs/tool_migration/apple_music_tool_cli_proposal.md:1` (kebab-case CLI proposal + output/error/logging contracts)
+- `docs/tool_migration/implementation_checklist.md:1` (implementation checklist by subcommand/tool)
 - `Sources/AppleMusicMCPServer/Tools/ToolRegistry+Tools.swift:1` (tool schemas: names, descriptions, required/optional inputs)
 - `Sources/AppleMusicMCPServer/Tools/ToolRegistry+Register.swift:1` (tool dispatch mapping)
 - `docs/hybrid_tool_spec.md:1` (hybrid tool rationale and coverage)
