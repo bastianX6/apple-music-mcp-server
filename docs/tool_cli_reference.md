@@ -1,18 +1,16 @@
 # MCP Tool Surface (Current) — Reference Guide
 
-This document describes the **current tool surface exposed by the `apple-music-mcp` MCP server**.
-It is intended as the source of truth for migrating the same capabilities to a standalone CLI.
+This document describes the **current tool surface exposed by the `apple-music-mcp` MCP server** and is the reference for the CLI parity surface (`apple-music-tool`).
 
 ## See also
-- `docs/tool_migration/README.md:1` (entry point for all migration docs)
-- `docs/tool_migration/apple_music_tool_cli_proposal.md:1` (kebab-case CLI proposal + output/error/logging contracts)
-- `docs/tool_migration/implementation_checklist.md:1` (implementation checklist by subcommand/tool)
-- `Sources/AppleMusicMCPServer/Tools/ToolRegistry+Tools.swift:1` (tool schemas: names, descriptions, required/optional inputs)
-- `Sources/AppleMusicMCPServer/Tools/ToolRegistry+Register.swift:1` (tool dispatch mapping)
-- `docs/hybrid_tool_spec.md:1` (hybrid tool rationale and coverage)
-- `docs/hybrid_tool_endpoint_mapping.md:1` (Apple Music endpoints ↔ tool mapping)
-- `docs/API_LIMITATIONS.md:1` (known Apple API limitations and best-effort behavior)
-- `docs/configuration.md:1` and `docs/apple_music_api_auth_guide.md:1` (config + tokens)
+- `docs/tool_cli_overview.md` (CLI overview, naming, error envelope, goals)
+- `docs/tool_cli_checklist.md` (implementation checklist by subcommand/tool)
+- `Sources/AppleMusicMCPServer/Tools/ToolRegistry+Tools.swift` (tool schemas: names, descriptions, required/optional inputs)
+- `Sources/AppleMusicMCPServer/Tools/ToolRegistry+Register.swift` (tool dispatch mapping)
+- `docs/hybrid_tool_spec.md` (hybrid tool rationale and coverage)
+- `docs/hybrid_tool_endpoint_mapping.md` (Apple Music endpoints ↔ tool mapping)
+- `docs/API_LIMITATIONS.md` (known Apple API limitations and best-effort behavior)
+- `docs/configuration.md` and `docs/apple_music_api_auth_guide.md` (config + tokens)
 
 ## Important Notes
 - The MCP server returns tool results as **text** (MCP `content: [.text(...)]`).

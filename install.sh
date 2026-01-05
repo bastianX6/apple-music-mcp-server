@@ -9,14 +9,16 @@ if [ ! -f "$SWIFT_DIR/Package.swift" ]; then
 	exit 1
 fi
 
-BUILD_PRODUCT="apple-music-mcp"
+BUILD_SERVER="apple-music-mcp"
+BUILD_CLI="apple-music-tool"
 DEST_DIR="$HOME/.local/bin"
 
 cd "$SWIFT_DIR"
-swift build -c release --product "$BUILD_PRODUCT"
+swift build -c release --product "$BUILD_SERVER" --product "$BUILD_CLI"
 
 mkdir -p "$DEST_DIR"
-install -m 755 "$SWIFT_DIR/.build/release/${BUILD_PRODUCT}" "$DEST_DIR/${BUILD_PRODUCT}"
+install -m 755 "$SWIFT_DIR/.build/release/${BUILD_SERVER}" "$DEST_DIR/${BUILD_SERVER}"
+install -m 755 "$SWIFT_DIR/.build/release/${BUILD_CLI}" "$DEST_DIR/${BUILD_CLI}"
 
-echo "Built $BUILD_PRODUCT"
-echo "Installed $BUILD_PRODUCT to $DEST_DIR"
+echo "Built $BUILD_SERVER and $BUILD_CLI"
+echo "Installed binaries to $DEST_DIR"

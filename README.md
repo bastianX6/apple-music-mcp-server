@@ -1,6 +1,6 @@
-# Apple Music MCP Server (Swift)
+# Apple Music MCP Server (Swift) + CLI
 
-An MCP server that exposes Apple Music API operations (catalog, library, recommendations, playlist management, and utility passthrough) over STDIO using the MCP Swift SDK. Tested on macOS 13+ and Swift 6 on Linux (x86_64, swift.org toolchains).
+An MCP server that exposes Apple Music API operations (catalog, library, recommendations, playlist management, and utility passthrough) over STDIO using the MCP Swift SDK, plus a parity CLI (`apple-music-tool`) for direct terminal access. Tested on macOS 13+ and Swift 6 on Linux (x86_64, swift.org toolchains).
 
 ## Installation
 
@@ -9,18 +9,19 @@ An MCP server that exposes Apple Music API operations (catalog, library, recomme
    ```bash
    bash ./install.sh
    ```
-- The script builds `apple-music-mcp` in release and installs the binary to `$HOME/.local/bin/apple-music-mcp` (directory is created if missing).
+- The script builds **both** `apple-music-mcp` and `apple-music-tool` in release and installs them to `~/.local/bin/` (directory is created if missing).
 - On Linux, ensure the Swift toolchain (Swift 6) and basic build tools are installed; the script works the same.
 
 ### Manual installation (source-based)
 1) From the Swift package directory (repo root), build in release:
    ```bash
-   swift build -c release --product apple-music-mcp
+   swift build -c release --product apple-music-mcp --product apple-music-tool
    ```
-2) Copy the server binary to your MCP bin path:
+2) Copy the binaries to your bin path:
    ```bash
    mkdir -p "$HOME/.local/bin"
    install -m 755 .build/release/apple-music-mcp "$HOME/.local/bin/apple-music-mcp"
+   install -m 755 .build/release/apple-music-tool "$HOME/.local/bin/apple-music-tool"
    ```
 
 ## Configuration
@@ -37,18 +38,20 @@ An MCP server that exposes Apple Music API operations (catalog, library, recomme
 
 The `setup` subcommand builds the config file exclusively from those environment variables plus the Music-User-Token you provide (CLI or browser helper). Missing env vars now cause `setup` to fail fast.
 
-### User token setup
+### User token setup (applies to both binaries)
 - CLI mode (persist an existing token):
    ```bash
    APPLE_MUSIC_TEAM_ID="<team>" \
    APPLE_MUSIC_MUSICKIT_ID="<kid>" \
    APPLE_MUSIC_PRIVATE_KEY="$(cat /path/to/AuthKey.p8)" \
    swift run apple-music-mcp setup --token "<user-token>"
+   swift run apple-music-tool setup --token "<user-token>"
    # Using the installed binary
    APPLE_MUSIC_TEAM_ID="<team>" \
    APPLE_MUSIC_MUSICKIT_ID="<kid>" \
    APPLE_MUSIC_PRIVATE_KEY="$(cat /path/to/AuthKey.p8)" \
    $HOME/.local/bin/apple-music-mcp setup --token "<user-token>"
+   $HOME/.local/bin/apple-music-tool setup --token "<user-token>"
    ```
 - Browser helper mode (local server + MusicKit flow):
    ```bash
@@ -56,14 +59,16 @@ The `setup` subcommand builds the config file exclusively from those environment
    APPLE_MUSIC_MUSICKIT_ID="<kid>" \
    APPLE_MUSIC_PRIVATE_KEY="$(cat /path/to/AuthKey.p8)" \
    swift run apple-music-mcp setup --serve --port 3000
+   swift run apple-music-tool setup --serve --port 3000
    # Using the installed binary
    APPLE_MUSIC_TEAM_ID="<team>" \
    APPLE_MUSIC_MUSICKIT_ID="<kid>" \
    APPLE_MUSIC_PRIVATE_KEY="$(cat /path/to/AuthKey.p8)" \
    $HOME/.local/bin/apple-music-mcp setup --serve --port 3000
+   $HOME/.local/bin/apple-music-tool setup --serve --port 3000
    ```
-   This opens your default browser (via `open` on macOS or `xdg-open` if available on Linux) for Apple Music authorization and writes `~/Library/Application Support/apple-music-mcp/config.json` with `0600` permissions once the token is received (including team ID, MusicKit ID, and private key if available from env).
-- Alternatively, place an existing user token in that config file if you already have one.
+   This opens your default browser (via `open` on macOS or `xdg-open` if available on Linux) for Apple Music authorization and writes the per-app config file with `0600` permissions once the token is received (including team ID, MusicKit ID, and private key if available from env).
+- Alternatively, place an existing user token in the config file if you already have one (per-app path).
 
 ### Running the server
 - Using source (dev workflow):
@@ -76,6 +81,17 @@ The `setup` subcommand builds the config file exclusively from those environment
    ```
 Both commands read `~/Library/Application Support/apple-music-mcp/config.json` (or the file passed via `--config`) and ignore environment variables at runtime.
 
+### Running the CLI
+- Using source (no install needed):
+   ```bash
+   swift run apple-music-tool <subcommand> [options]
+   ```
+- Using installed binary:
+   ```bash
+   $HOME/.local/bin/apple-music-tool <subcommand> [options]
+   ```
+Use `--beautify` to pretty-print JSON. See `docs/tool_cli_overview.md` and `docs/tool_cli_reference.md` for the subcommand list and parameters. For quick checks, you can run the CLI via `swift run` without building the release binary.
+
 ## Tests
 From the Swift package directory (repo root):
 ```bash
@@ -84,14 +100,16 @@ swift test
 
 ## Tool Surface (Hybrid)
 
-The repo is migrating to a hybrid tool surface that balances LLM-friendly selection with full API coverage.
+The repo uses a hybrid tool surface for both MCP and CLI.
 
 Sources of truth:
 - `docs/hybrid_tool_spec.md` for the intended tool surface.
 - `docs/hybrid_tool_endpoint_mapping.md` for the full endpoint-to-tool mapping.
 - `docs/apple_music_api_endpoints.md` for the Apple Music API endpoint list derived from Apple documentation.
 - `docs/API_LIMITATIONS.md` for known API constraints and 404/405 behavior.
-- `docs/hybrid_tool_smoke_prompts.md` for explicit smoke-test prompts.
+- `docs/hybrid_tool_smoke_prompts.md` for MCP smoke tests.
+- `docs/hybrid_tool_cli_smoke_prompts.md` for CLI smoke tests using `swift run apple-music-tool`.
+- `docs/tool_cli_overview.md`, `docs/tool_cli_reference.md`, `docs/tool_cli_checklist.md`, `docs/tool_cli_index.md` for CLI parity docs.
 
 Guidance:
 - Use intent-based tools (search, charts, catalog lookups, library lists, recommendations, playlist management) for common workflows.
