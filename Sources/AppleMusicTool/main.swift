@@ -6,7 +6,13 @@ import AppleMusicCore
 struct AppleMusicToolMain: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         abstract: "Apple Music CLI",
-        subcommands: [Setup.self],
+        subcommands: [
+            Setup.self,
+            GetUserStorefrontCommand.self,
+            SearchCatalogCommand.self,
+            GetRecordLabelsCommand.self,
+            GetLibraryPlaylistsCommand.self
+        ],
         helpNames: [.long, .short]
     )
 

@@ -66,7 +66,7 @@ let package = Package(
         ),
         .testTarget(
             name: "AppleMusicMCPServerTests",
-            dependencies: ["AppleMusicCore"],
+            dependencies: ["AppleMusicCore", "AppleMusicTool"],
             path: "Tests/AppleMusicMCPServerTests"
         )
     ]
