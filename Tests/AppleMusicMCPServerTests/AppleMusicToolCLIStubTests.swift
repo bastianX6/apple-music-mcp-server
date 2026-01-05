@@ -36,6 +36,29 @@ final class AppleMusicToolCLIStubTests: XCTestCase {
         XCTAssertTrue(capturedOutput.contains("ok"))
     }
 
+    func testGetCatalogAlbumsBuildsPath() async throws {
+        let client = StubClient()
+        let runner = ToolRunner(configPath: nil, beautify: false, client: client, stdout: { _ in }, stderr: { _ in })
+        try await runner.run(toolName: "get_catalog_albums", arguments: [
+            "ids": .string("1,2"),
+            "storefront": .string("jp")
+        ])
+        XCTAssertEqual(client.lastPath, "v1/catalog/jp/albums")
+        let dict = client.lastQuery.reduce(into: [:]) { $0[$1.name] = $1.value }
+        XCTAssertEqual(dict["ids"], "1,2")
+    }
+
+    func testGetCatalogArtistsUsesIds() async throws {
+        let client = StubClient()
+        let runner = ToolRunner(configPath: nil, beautify: false, client: client, stdout: { _ in }, stderr: { _ in })
+        try await runner.run(toolName: "get_catalog_artists", arguments: [
+            "ids": .string("a1,b2")
+        ])
+        XCTAssertEqual(client.lastPath, "v1/catalog/us/artists")
+        let dict = client.lastQuery.reduce(into: [:]) { $0[$1.name] = $1.value }
+        XCTAssertEqual(dict["ids"], "a1,b2")
+    }
+
     func testGetRecordLabelsReturnsErrorEnvelope() async throws {
         let client = StubClient()
         var errorOutput = ""

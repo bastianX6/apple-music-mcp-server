@@ -16,6 +16,11 @@ struct AppleMusicToolMain: AsyncParsableCommand {
             GetGenresCommand.self,
             GetStationsCommand.self,
             GetCatalogSongsCommand.self,
+            GetCatalogAlbumsCommand.self,
+            GetCatalogArtistsCommand.self,
+            GetCatalogPlaylistsCommand.self,
+            GetMusicVideosCommand.self,
+            GetCuratorsCommand.self,
             GetLibrarySongsCommand.self,
             GetRecordLabelsCommand.self,
             GetLibraryPlaylistsCommand.self
