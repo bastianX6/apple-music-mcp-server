@@ -571,7 +571,7 @@ extension ToolRegistry {
             ),
             Tool(
                 name: "get_catalog_view",
-                description: "Fetch a catalog view by name for a resource. Allowed types: songs, albums, artists, playlists, curators, stations, music-videos, activities, genres, record-labels.",
+                description: "Fetch a catalog view by name for a resource. Allowed type/view combos: albums(appears-on, other-versions, related-albums, related-videos); artists(appears-on-albums, compilation-albums, featured-albums, featured-music-videos, featured-playlists, full-albums, latest-release, live-albums, similar-artists, singles, top-music-videos, top-songs); music-videos(more-by-artist, more-in-genre); playlists(featured-artists, more-by-curator); record-labels(latest-releases, top-releases).",
                 inputSchema: .object([
                     "type": .string("object"),
                     "properties": .object([
@@ -581,7 +581,7 @@ extension ToolRegistry {
                         ]),
                         "type": .object([
                             "type": .string("string"),
-                            "description": .string("Resource type")
+                            "description": .string("Resource type (albums, artists, music-videos, playlists, record-labels)")
                         ]),
                         "id": .object([
                             "type": .string("string"),
@@ -589,7 +589,7 @@ extension ToolRegistry {
                         ]),
                         "view": .object([
                             "type": .string("string"),
-                            "description": .string("View name")
+                            "description": .string("View name (see description for allowed views per type)")
                         ]),
                         "limit": .object([
                             "type": .string("integer"),
@@ -644,24 +644,6 @@ extension ToolRegistry {
                         ])
                     ]),
                     "required": .array([.string("ids")])
-                ]),
-                annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true)
-            ),
-            Tool(
-                name: "get_record_labels",
-                description: "Record labels are not available as resources; returns informative error.",
-                inputSchema: .object([
-                    "type": .string("object"),
-                    "properties": .object([:])
-                ]),
-                annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true)
-            ),
-            Tool(
-                name: "get_radio_shows",
-                description: "Radio shows endpoint is not available (404); returns informative error.",
-                inputSchema: .object([
-                    "type": .string("object"),
-                    "properties": .object([:])
                 ]),
                 annotations: .init(readOnlyHint: true, destructiveHint: false, idempotentHint: true)
             ),
@@ -966,6 +948,14 @@ extension ToolRegistry {
                 inputSchema: .object([
                     "type": .string("object"),
                     "properties": .object([
+                        "limit": .object([
+                            "type": .string("integer"),
+                            "description": .string("Result limit (1-100, default 25)")
+                        ]),
+                        "offset": .object([
+                            "type": .string("integer"),
+                            "description": .string("Offset for pagination (default 0)")
+                        ]),
                         "l": .object([
                             "type": .string("string"),
                             "description": .string("Language tag override")
@@ -1131,7 +1121,7 @@ extension ToolRegistry {
             ),
             Tool(
                 name: "get_recommendation_relationship",
-                description: "Fetch a recommendation relationship by name (requires Music-User-Token).",
+                description: "Fetch a recommendation relationship by name (requires Music-User-Token). Allowed relationship: contents.",
                 inputSchema: .object([
                     "type": .string("object"),
                     "properties": .object([
@@ -1141,7 +1131,7 @@ extension ToolRegistry {
                         ]),
                         "relationship": .object([
                             "type": .string("string"),
-                            "description": .string("Relationship name (commonly contents)")
+                            "description": .string("Relationship name (allowed: contents)")
                         ]),
                         "limit": .object([
                             "type": .string("integer"),
@@ -1231,13 +1221,29 @@ extension ToolRegistry {
             ),
             Tool(
                 name: "get_replay",
-                description: "Replay data endpoint is not available (404); returns informative error.",
+                description: "Fetch replay data (alias of /v1/me/music-summaries) with a simpler shape. Defaults to filter[year]=latest (only allowed value).",
                 inputSchema: .object([
                     "type": .string("object"),
                     "properties": .object([
                         "year": .object([
                             "type": .string("string"),
-                            "description": .string("Replay year (optional, ignored)")
+                            "description": .string("Replay year (only 'latest' is valid; defaults to latest)")
+                        ]),
+                        "views": .object([
+                            "type": .string("string"),
+                            "description": .string("Comma-separated views (optional). Allowed: top-artists, top-albums, top-songs.")
+                        ]),
+                        "include": .object([
+                            "type": .string("string"),
+                            "description": .string("Relationship data to include")
+                        ]),
+                        "extend": .object([
+                            "type": .string("string"),
+                            "description": .string("Extended attributes to include")
+                        ]),
+                        "l": .object([
+                            "type": .string("string"),
+                            "description": .string("Language tag override")
                         ])
                     ])
                 ]),

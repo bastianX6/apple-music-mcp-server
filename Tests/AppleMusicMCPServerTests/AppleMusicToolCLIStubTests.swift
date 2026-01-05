@@ -118,19 +118,6 @@ final class AppleMusicToolCLIStubTests: XCTestCase {
         XCTAssertEqual(client.lastPath, "v1/me/recent/played/tracks")
     }
 
-    func testGetRecordLabelsReturnsErrorEnvelope() async throws {
-        let client = StubClient()
-        var errorOutput = ""
-        let runner = ToolRunner(configPath: nil, beautify: true, client: client, stdout: { _ in }, stderr: { errorOutput = $0 })
-        do {
-            try await runner.run(toolName: "get_record_labels", arguments: [:])
-            XCTFail("Expected failure")
-        } catch {
-            // expected
-        }
-        XCTAssertTrue(errorOutput.contains("tool-error"))
-    }
-
     func testCreatePlaylistBuildsBody() async throws {
         let client = StubClient()
         client.userToken = "user"

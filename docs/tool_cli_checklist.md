@@ -59,11 +59,6 @@ This checklist breaks down the work required to add the `apple-music-tool` CLI a
 - [ ] `get-catalog-multi-by-type-ids`
 - [ ] `get-best-language-tag`
 
-### Unsupported / Informational
-- [ ] `get-record-labels` (no request; standardized error JSON)
-- [ ] `get-radio-shows` (no request; standardized error JSON)
-- [ ] `get-replay` (no request; standardized error JSON)
-
 ### Library (Read)
 - [ ] `get-library-playlists`
 - [ ] `get-library-songs`
@@ -83,6 +78,7 @@ This checklist breaks down the work required to add the `apple-music-tool` CLI a
 - [ ] `get-recommendation-relationship`
 - [ ] `get-heavy-rotation`
 - [ ] `get-replay-data`
+- [ ] `get-replay`
 
 ### Library (Write) / Playlist Management
 - [ ] `create-playlist`

@@ -222,28 +222,6 @@ final class ToolRegistryTests: XCTestCase {
         XCTAssertEqual(dict["ids"], "abc,def")
     }
 
-    func testRecordLabelsReturnsInformativeError() async throws {
-        let (registry, stub) = makeRegistry()
-        let params = CallTool.Parameters(name: "get_record_labels")
-
-        let result = try await registry.handleGetRecordLabels(params: params)
-
-        XCTAssertEqual(result.isError, true)
-        XCTAssertTrue(text(result).contains("Record labels"))
-        XCTAssertNil(stub.lastGetPath)
-    }
-
-    func testRadioShowsReturnsInformativeError() async throws {
-        let (registry, stub) = makeRegistry()
-        let params = CallTool.Parameters(name: "get_radio_shows")
-
-        let result = try await registry.handleGetRadioShows(params: params)
-
-        XCTAssertEqual(result.isError, true)
-        XCTAssertTrue(text(result).contains("Radio shows endpoint"))
-        XCTAssertNil(stub.lastGetPath)
-    }
-
     func testLibraryAlbumsRequiresUserToken() async throws {
         let (registry, _) = makeRegistry(userToken: nil)
         let params = CallTool.Parameters(name: "get_library_albums")

@@ -409,6 +409,21 @@ extension ToolRegistry {
             return CallTool.Result(content: [.text("Missing required argument 'view'.")], isError: true)
         }
 
+        guard let allowedViews = catalogViewsByType[type] else {
+            let supported = catalogViewsByType.keys.sorted().joined(separator: ", ")
+            return CallTool.Result(
+                content: [.text("Type '\(type)' does not support views. Supported types: \(supported).")],
+                isError: true
+            )
+        }
+        guard allowedViews.contains(view) else {
+            let allowed = allowedViews.sorted().joined(separator: ", ")
+            return CallTool.Result(
+                content: [.text("Invalid view '\(view)' for type '\(type)'. Allowed views: \(allowed).")],
+                isError: true
+            )
+        }
+
         let storefrontResult = await resolveStorefront(params.arguments?["storefront"]?.stringValue)
         guard case let .success(storefront) = storefrontResult else { return storefrontResult.errorResult }
         let path = "v1/catalog/\(storefront)/\(type)/\(id)/view/\(view)"
@@ -468,13 +483,25 @@ extension ToolRegistry {
         }
     }
 
-    func handleGetRecordLabels(params: CallTool.Parameters) async throws -> CallTool.Result {
-        let message = "Record labels are not exposed as resources in the Apple Music API. No request was sent."
-        return CallTool.Result(content: [.text(message)], isError: true)
-    }
-
-    func handleGetRadioShows(params: CallTool.Parameters) async throws -> CallTool.Result {
-        let message = "Radio shows endpoint returns 404 in Apple Music API. Use stations instead. No request was sent."
-        return CallTool.Result(content: [.text(message)], isError: true)
-    }
 }
+
+private let catalogViewsByType: [String: Set<String>] = [
+    "albums": ["appears-on", "other-versions", "related-albums", "related-videos"],
+    "artists": [
+        "appears-on-albums",
+        "compilation-albums",
+        "featured-albums",
+        "featured-music-videos",
+        "featured-playlists",
+        "full-albums",
+        "latest-release",
+        "live-albums",
+        "similar-artists",
+        "singles",
+        "top-music-videos",
+        "top-songs"
+    ],
+    "music-videos": ["more-by-artist", "more-in-genre"],
+    "playlists": ["featured-artists", "more-by-curator"],
+    "record-labels": ["latest-releases", "top-releases"]
+]

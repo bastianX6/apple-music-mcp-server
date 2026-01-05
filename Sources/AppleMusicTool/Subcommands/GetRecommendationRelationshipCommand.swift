@@ -30,6 +30,13 @@ struct GetRecommendationRelationshipCommand: AsyncParsableCommand, ToolRunnableC
     @Option(name: .customLong("l"), help: "Language tag override.")
     var language: String?
 
+    func validate() throws {
+        guard Self.allowedRelationships.contains(relationship) else {
+            let allowed = Self.allowedRelationships.sorted().joined(separator: ", ")
+            throw ValidationError("Invalid relationship '\(relationship)'. Allowed: \(allowed).")
+        }
+    }
+
     func run() async throws {
         var args: [String: Value] = [
             "id": .string(id),
@@ -42,4 +49,6 @@ struct GetRecommendationRelationshipCommand: AsyncParsableCommand, ToolRunnableC
         if let language { args["l"] = .string(language) }
         try await runTool(toolName: "get_recommendation_relationship", arguments: args)
     }
+
+    private static let allowedRelationships: Set<String> = ["contents"]
 }

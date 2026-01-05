@@ -57,10 +57,6 @@ extension ToolRegistry {
             return try await handleGetCatalogView(params: params)
         case "get_catalog_multi_by_type_ids":
             return try await handleGetCatalogMultiByTypeIds(params: params)
-        case "get_record_labels":
-            return try await handleGetRecordLabels(params: params)
-        case "get_radio_shows":
-            return try await handleGetRadioShows(params: params)
         case "get_library_albums":
             return try await handleGetLibraryAlbums(params: params)
         case "get_library_artists":

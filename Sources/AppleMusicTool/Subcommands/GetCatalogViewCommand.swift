@@ -36,6 +36,17 @@ struct GetCatalogViewCommand: AsyncParsableCommand, ToolRunnableCommand {
     @Option(name: .customLong("l"), help: "Language tag override.")
     var language: String?
 
+    func validate() throws {
+        guard let allowedViews = Self.catalogViewsByType[type] else {
+            let supported = Self.catalogViewsByType.keys.sorted().joined(separator: ", ")
+            throw ValidationError("Type '\(type)' does not support views. Supported types: \(supported).")
+        }
+        guard allowedViews.contains(view) else {
+            let allowed = allowedViews.sorted().joined(separator: ", ")
+            throw ValidationError("Invalid view '\(view)' for type '\(type)'. Allowed views: \(allowed).")
+        }
+    }
+
     func run() async throws {
         var args: [String: Value] = [
             "type": .string(type),
@@ -50,4 +61,25 @@ struct GetCatalogViewCommand: AsyncParsableCommand, ToolRunnableCommand {
         if let language { args["l"] = .string(language) }
         try await runTool(toolName: "get_catalog_view", arguments: args)
     }
+
+    private static let catalogViewsByType: [String: Set<String>] = [
+        "albums": ["appears-on", "other-versions", "related-albums", "related-videos"],
+        "artists": [
+            "appears-on-albums",
+            "compilation-albums",
+            "featured-albums",
+            "featured-music-videos",
+            "featured-playlists",
+            "full-albums",
+            "latest-release",
+            "live-albums",
+            "similar-artists",
+            "singles",
+            "top-music-videos",
+            "top-songs"
+        ],
+        "music-videos": ["more-by-artist", "more-in-genre"],
+        "playlists": ["featured-artists", "more-by-curator"],
+        "record-labels": ["latest-releases", "top-releases"]
+    ]
 }

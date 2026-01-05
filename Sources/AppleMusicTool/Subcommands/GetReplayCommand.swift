@@ -1,16 +1,16 @@
 import ArgumentParser
 import MCP
 
-struct GetReplayDataCommand: AsyncParsableCommand, ToolRunnableCommand {
+struct GetReplayCommand: AsyncParsableCommand, ToolRunnableCommand {
     static let configuration = CommandConfiguration(
-        commandName: "get-replay-data",
-        abstract: "Fetch replay data via music-summaries."
+        commandName: "get-replay",
+        abstract: "Fetch replay data (alias of music-summaries)."
     )
 
     @OptionGroup var global: GlobalOptions
 
-    @Option(name: .customLong("filter-year"), help: "filter[year], must be latest.")
-    var filterYear: String
+    @Option(name: .customLong("year"), help: "Replay year (only 'latest' is valid; defaults to latest).")
+    var year: String?
 
     @Option(name: .customLong("views"), help: "Comma-separated views (top-artists, top-albums, top-songs).")
     var views: String?
@@ -25,17 +25,17 @@ struct GetReplayDataCommand: AsyncParsableCommand, ToolRunnableCommand {
     var language: String?
 
     func validate() throws {
-        guard filterYear == "latest" else {
-            throw ValidationError("Invalid filter-year \(filterYear). Apple Music requires 'latest'.")
+        if let year, year != "latest" {
+            throw ValidationError("Invalid year \(year). Apple Music supports only 'latest' for replay.")
         }
     }
 
     func run() async throws {
-        var args: [String: Value] = ["filter[year]": .string(filterYear)]
+        var args: [String: Value] = ["year": .string(year ?? "latest")]
         if let views { args["views"] = .string(views) }
         if let include { args["include"] = .string(include) }
         if let extend { args["extend"] = .string(extend) }
         if let language { args["l"] = .string(language) }
-        try await runTool(toolName: "get_replay_data", arguments: args)
+        try await runTool(toolName: "get_replay", arguments: args)
     }
 }

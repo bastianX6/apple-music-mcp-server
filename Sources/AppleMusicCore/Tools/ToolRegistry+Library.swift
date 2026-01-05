@@ -166,11 +166,30 @@ extension ToolRegistry {
 
     func handleGetLibraryMultiByTypeIds(params: CallTool.Parameters) async throws -> CallTool.Result {
         if let errorResult = requireUserToken() { return errorResult }
-        guard let idsValue = params.arguments?["ids"] else {
+        guard let idsValue = params.arguments?["ids"], let idsObject = idsValue.objectValue else {
             return CallTool.Result(content: [.text("Missing required argument 'ids'.")], isError: true)
         }
 
-        let idsItems = idsQueryItems(from: idsValue, prefix: "ids")
+        var idsItems: [URLQueryItem] = []
+        var invalidKeys: [String] = []
+        for (key, value) in idsObject.sorted(by: { $0.key < $1.key }) {
+            guard let normalizedKey = normalizeLibraryTypeKey(key) else {
+                invalidKeys.append(key)
+                continue
+            }
+            if let queryItem = queryItem(named: "ids[\(normalizedKey)]", from: value) {
+                idsItems.append(queryItem)
+            }
+        }
+
+        if !invalidKeys.isEmpty {
+            let allowed = libraryTypeKeys.sorted().joined(separator: ", ")
+            return CallTool.Result(
+                content: [.text("Invalid ids keys: \(invalidKeys.joined(separator: ", ")). Allowed: \(allowed).")],
+                isError: true
+            )
+        }
+
         guard !idsItems.isEmpty else {
             return CallTool.Result(content: [.text("Argument 'ids' must be an object of resource types to IDs.")], isError: true)
         }
@@ -191,9 +210,23 @@ extension ToolRegistry {
         guard let term = params.arguments?["term"]?.stringValue?.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
             return CallTool.Result(content: [.text("Missing required argument 'term'.")], isError: true)
         }
-        guard let types = params.arguments?["types"]?.stringValue else {
+        guard let typesValue = params.arguments?["types"] else {
             return CallTool.Result(content: [.text("Missing required argument 'types'.")], isError: true)
         }
+
+        let rawTypes = stringList(from: typesValue)
+        guard !rawTypes.isEmpty else {
+            return CallTool.Result(content: [.text("No types provided after parsing.")], isError: true)
+        }
+        let normalization = normalizeLibraryTypes(rawTypes)
+        if !normalization.invalid.isEmpty {
+            let allowed = libraryTypeKeys.sorted().joined(separator: ", ")
+            return CallTool.Result(
+                content: [.text("Invalid types: \(normalization.invalid.joined(separator: ", ")). Allowed: \(allowed).")],
+                isError: true
+            )
+        }
+        let types = normalization.valid.joined(separator: ",")
 
         let limit = params.arguments?["limit"]?.intValue ?? 10
         let offset = params.arguments?["offset"]?.intValue ?? 0
@@ -222,7 +255,16 @@ extension ToolRegistry {
     func handleGetLibraryRecentlyAdded(params: CallTool.Parameters) async throws -> CallTool.Result {
         if let errorResult = requireUserToken() { return errorResult }
 
-        let queryItems = optionalQueryItems(from: params, allowed: ["l"])
+        let limit = params.arguments?["limit"]?.intValue ?? 25
+        let offset = params.arguments?["offset"]?.intValue ?? 0
+        let cappedLimit = max(1, min(limit, 100))
+        let cappedOffset = max(0, offset)
+
+        var queryItems: [URLQueryItem] = [URLQueryItem(name: "limit", value: String(cappedLimit))]
+        if cappedOffset > 0 {
+            queryItems.append(URLQueryItem(name: "offset", value: String(cappedOffset)))
+        }
+        queryItems.append(contentsOf: optionalQueryItems(from: params, allowed: ["l"]))
         do {
             let data = try await client.get(path: "v1/me/library/recently-added", queryItems: queryItems)
             let text = prettyPrintedJSON(data) ?? String(data: data, encoding: .utf8) ?? ""
@@ -352,6 +394,14 @@ extension ToolRegistry {
             return CallTool.Result(content: [.text("Missing required argument 'relationship'.")], isError: true)
         }
 
+        guard allowedRecommendationRelationships.contains(relationship) else {
+            let allowed = allowedRecommendationRelationships.sorted().joined(separator: ", ")
+            return CallTool.Result(
+                content: [.text("Invalid relationship '\(relationship)'. Allowed relationships: \(allowed).")],
+                isError: true
+            )
+        }
+
         let queryItems = optionalQueryItems(from: params, allowed: ["include", "extend", "l", "limit", "offset"])
         do {
             let data = try await client.get(path: "v1/me/recommendations/\(id)/\(relationship)", queryItems: queryItems)
@@ -389,37 +439,39 @@ extension ToolRegistry {
 
     func handleGetReplayData(params: CallTool.Parameters) async throws -> CallTool.Result {
         if let errorResult = requireUserToken() { return errorResult }
-        guard let filterYear = params.arguments?["filter[year]"]?.stringValue, !filterYear.isEmpty else {
-            return CallTool.Result(content: [.text("Missing required argument 'filter[year]'. Must be 'latest' per Apple Music API.")], isError: true)
-        }
-        guard filterYear == "latest" else {
-            return CallTool.Result(content: [.text("Invalid 'filter[year]' value. Per Apple Music API, use 'latest'.")], isError: true)
-        }
-
-        if let viewsValue = params.arguments?["views"]?.stringValue, !viewsValue.isEmpty {
-            let allowed = Set(["top-artists", "top-albums", "top-songs"])
-            let values = viewsValue.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
-            let invalid = values.filter { !allowed.contains($0) }
-            if !invalid.isEmpty {
-                return CallTool.Result(content: [.text("Invalid views: \(invalid.joined(separator: ", ")). Allowed: top-artists, top-albums, top-songs.")], isError: true)
+        let arguments = params.arguments ?? [:]
+        switch buildReplayQueryItems(arguments: arguments) {
+        case .failure(let errorResult):
+            return errorResult
+        case .success(let queryItems):
+            do {
+                let data = try await client.get(path: "v1/me/music-summaries", queryItems: queryItems)
+                let text = prettyPrintedJSON(data) ?? String(data: data, encoding: .utf8) ?? ""
+                return CallTool.Result(content: [.text(text)], isError: false)
+            } catch {
+                return CallTool.Result(content: [.text("Request failed: \(error.localizedDescription)")], isError: true)
             }
-        }
-
-        var queryItems: [URLQueryItem] = [URLQueryItem(name: "filter[year]", value: "latest")]
-        queryItems.append(contentsOf: optionalQueryItems(from: params, allowed: ["include", "extend", "l", "views"]))
-
-        do {
-            let data = try await client.get(path: "v1/me/music-summaries", queryItems: queryItems)
-            let text = prettyPrintedJSON(data) ?? String(data: data, encoding: .utf8) ?? ""
-            return CallTool.Result(content: [.text(text)], isError: false)
-        } catch {
-            return CallTool.Result(content: [.text("Request failed: \(error.localizedDescription)")], isError: true)
         }
     }
 
     func handleGetReplay(params: CallTool.Parameters) async throws -> CallTool.Result {
-        let message = "Replay data endpoint (/v1/me/replay) is not available (Apple returns 404). No request was sent."
-        return CallTool.Result(content: [.text(message)], isError: true)
+        if let errorResult = requireUserToken() { return errorResult }
+        var arguments = params.arguments ?? [:]
+        let year = arguments["year"]?.stringValue ?? arguments["filter[year]"]?.stringValue ?? "latest"
+        arguments["filter[year]"] = .string(year)
+
+        switch buildReplayQueryItems(arguments: arguments) {
+        case .failure(let errorResult):
+            return errorResult
+        case .success(let queryItems):
+            do {
+                let data = try await client.get(path: "v1/me/music-summaries", queryItems: queryItems)
+                let text = prettyPrintedJSON(data) ?? String(data: data, encoding: .utf8) ?? ""
+                return CallTool.Result(content: [.text(text)], isError: false)
+            } catch {
+                return CallTool.Result(content: [.text("Request failed: \(error.localizedDescription)")], isError: true)
+            }
+        }
     }
 
     func handleCreatePlaylist(params: CallTool.Parameters) async throws -> CallTool.Result {
@@ -681,4 +733,90 @@ extension ToolRegistry {
             return CallTool.Result(content: [.text("Request failed: \(error.localizedDescription)")], isError: true)
         }
     }
+}
+
+private let libraryTypeKeyMapping: [String: String] = [
+    "library-songs": "library-songs",
+    "library-albums": "library-albums",
+    "library-artists": "library-artists",
+    "library-playlists": "library-playlists",
+    "library-playlist-folders": "library-playlist-folders",
+    "library-music-videos": "library-music-videos",
+    "songs": "library-songs",
+    "albums": "library-albums",
+    "artists": "library-artists",
+    "playlists": "library-playlists",
+    "playlist-folders": "library-playlist-folders",
+    "music-videos": "library-music-videos"
+]
+
+private let libraryTypeKeys: Set<String> = [
+    "library-songs",
+    "library-albums",
+    "library-artists",
+    "library-playlists",
+    "library-playlist-folders",
+    "library-music-videos"
+]
+
+private let allowedRecommendationRelationships: Set<String> = ["contents"]
+private let allowedReplayViews: Set<String> = ["top-artists", "top-albums", "top-songs"]
+
+extension ToolRegistry {
+    private func normalizeLibraryTypeKey(_ raw: String) -> String? {
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+        return libraryTypeKeyMapping[trimmed]
+    }
+
+    private func normalizeLibraryTypes(_ raw: [String]) -> (valid: [String], invalid: [String]) {
+        var valid: [String] = []
+        var invalid: [String] = []
+
+        for value in raw {
+            guard let normalized = normalizeLibraryTypeKey(value) else {
+                let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+                if !trimmed.isEmpty {
+                    invalid.append(trimmed)
+                }
+                continue
+            }
+            if !valid.contains(normalized) {
+                valid.append(normalized)
+            }
+        }
+
+        return (valid, invalid)
+    }
+
+    private func buildReplayQueryItems(arguments: [String: Value]) -> ReplayQueryResult {
+        guard let filterYear = arguments["filter[year]"]?.stringValue, !filterYear.isEmpty else {
+                return .failure(CallTool.Result(content: [.text("Missing required argument 'filter[year]'. Must be 'latest' per Apple Music API.")], isError: true))
+        }
+        guard filterYear == "latest" else {
+                return .failure(CallTool.Result(content: [.text("Invalid 'filter[year]' value. Per Apple Music API, use 'latest'.")], isError: true))
+        }
+
+        if let viewsValue = arguments["views"]?.stringValue, !viewsValue.isEmpty {
+            let values = viewsValue
+                .split(separator: ",")
+                .map { $0.trimmingCharacters(in: .whitespaces) }
+                .filter { !$0.isEmpty }
+            let invalid = values.filter { !allowedReplayViews.contains($0) }
+            if !invalid.isEmpty {
+                let allowed = allowedReplayViews.sorted().joined(separator: ", ")
+                return .failure(CallTool.Result(content: [.text("Invalid views: \(invalid.joined(separator: ", ")). Allowed: \(allowed).")], isError: true))
+            }
+        }
+
+        let params = CallTool.Parameters(name: "get_replay_data", arguments: arguments)
+        var queryItems: [URLQueryItem] = [URLQueryItem(name: "filter[year]", value: "latest")]
+        queryItems.append(contentsOf: optionalQueryItems(from: params, allowed: ["include", "extend", "l", "views"]))
+        return .success(queryItems)
+    }
+}
+
+private enum ReplayQueryResult {
+    case success([URLQueryItem])
+    case failure(CallTool.Result)
 }

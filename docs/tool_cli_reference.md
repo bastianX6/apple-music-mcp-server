@@ -52,8 +52,6 @@ When no user token is available, the server defaults to `us` unless a `storefron
 | `get_catalog_view` | GET | `/v1/catalog/{storefront}/{type}/{id}/view/{view}` | Dev token | Requires `type` + `id` + `view` |
 | `get_catalog_multi_by_type_ids` | GET | `/v1/catalog/{storefront}` | Dev token | Requires `ids` object (typed keys) |
 | `get_best_language_tag` | GET | `/v1/language/{storefront}/tag` | Dev token | Requires `acceptLanguage` |
-| `get_record_labels` | — | — | — | Informative error; no request sent |
-| `get_radio_shows` | — | — | — | Informative error; no request sent |
 | `get_library_playlists` | GET | `/v1/me/library/playlists` | Dev + user token | Pagination via `limit`/`offset` |
 | `get_library_songs` | GET | `/v1/me/library/songs` | Dev + user token | Pagination via `limit`/`offset` |
 | `get_library_albums` | GET | `/v1/me/library/albums` | Dev + user token | Pagination via `limit`/`offset` |
@@ -63,7 +61,7 @@ When no user token is available, the server defaults to `us` unless a `storefron
 | `get_library_relationship` | GET | `/v1/me/library/{type}/{id}/{relationship}` | Dev + user token | Requires `type` + `id` + `relationship` |
 | `get_library_multi_by_type_ids` | GET | `/v1/me/library` | Dev + user token | Requires `ids` object (typed keys) |
 | `library_search` | GET | `/v1/me/library/search` | Dev + user token | Requires `term` + `types` |
-| `get_library_recently_added` | GET | `/v1/me/library/recently-added` | Dev + user token | Optional `l` |
+| `get_library_recently_added` | GET | `/v1/me/library/recently-added` | Dev + user token | Pagination via `limit`/`offset`; optional `l` |
 | `get_recently_played` | GET | `/v1/me/recent/played` | Dev + user token | Optional `types`, pagination |
 | `get_recently_played_tracks` | GET | `/v1/me/recent/played/tracks` | Dev + user token | Optional `types`, pagination |
 | `get_recently_played_stations` | GET | `/v1/me/recent/radio-stations` | Dev + user token | Pagination |
@@ -72,7 +70,7 @@ When no user token is available, the server defaults to `us` unless a `storefron
 | `get_recommendation_relationship` | GET | `/v1/me/recommendations/{id}/{relationship}` | Dev + user token | Requires `id` + `relationship` |
 | `get_heavy_rotation` | GET | `/v1/me/history/heavy-rotation` | Dev + user token | Pagination |
 | `get_replay_data` | GET | `/v1/me/music-summaries` | Dev + user token | Requires `filter[year]=latest` |
-| `get_replay` | — | — | — | Informative error; no request sent |
+| `get_replay` | GET | `/v1/me/music-summaries` | Dev + user token | Defaults to `filter[year]=latest`; optional `views` |
 | `create_playlist` | POST | `/v1/me/library/playlists` | Dev + user token | Requires `name`; optional `tracks`, `parent` |
 | `add_playlist_tracks` | POST | `/v1/me/library/playlists/{playlistId}/tracks` | Dev + user token | Requires `playlistId`, `trackIds` |
 | `create_playlist_folder` | POST | `/v1/me/library/playlist-folders` | Dev + user token | Requires `name` |
@@ -352,12 +350,6 @@ When no user token is available, the server defaults to `us` unless a `storefron
 | `storefront` | No | string | Storefront code (default: `us`; ignored when user token resolves storefront) |
 | `l` | No | string | Language tag override |
 
-### `get_record_labels`
-**Behavior:** Informative error; **no request is sent**.
-
-### `get_radio_shows`
-**Behavior:** Informative error; **no request is sent**.
-
 ### `get_library_playlists`
 **Method/Path:** GET `/v1/me/library/playlists`
 
@@ -550,7 +542,16 @@ When no user token is available, the server defaults to `us` unless a `storefron
 | `l` | No | string | Language tag override |
 
 ### `get_replay`
-**Behavior:** Informative error; **no request is sent**.
+**Method/Path:** GET `/v1/me/music-summaries`
+
+**Parameters**
+| Name | Required | Type | Allowed values / behavior |
+| --- | --- | --- | --- |
+| `year` | No | string | Defaults to `latest`; only `latest` is valid (validated) |
+| `views` | No | string | Comma-separated: `top-artists, top-albums, top-songs` (validated when provided) |
+| `include` | No | string | Relationship data to include |
+| `extend` | No | string | Extended attributes to include |
+| `l` | No | string | Language tag override |
 
 ### `create_playlist`
 **Method/Path:** POST `/v1/me/library/playlists`

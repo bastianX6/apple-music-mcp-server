@@ -56,8 +56,6 @@ Failing commands write envelope to stderr and exit non-zero.
 - get-catalog-view
 - get-catalog-multi-by-type-ids
 - get-best-language-tag
-- get-record-labels (informative error; no request)
-- get-radio-shows (informative error; no request)
 - get-library-playlists
 - get-library-songs
 - get-library-albums
@@ -76,7 +74,7 @@ Failing commands write envelope to stderr and exit non-zero.
 - get-recommendation-relationship
 - get-heavy-rotation
 - get-replay-data
-- get-replay (informative error; no request)
+- get-replay
 - create-playlist
 - add-playlist-tracks
 - create-playlist-folder

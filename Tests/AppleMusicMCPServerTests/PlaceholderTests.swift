@@ -3,6 +3,30 @@ import Foundation
 import MCP
 @testable import AppleMusicCore
 
+final class ReplayStubClient: AppleMusicClientProtocol, @unchecked Sendable {
+    var userToken: String?
+    var lastGetPath: String?
+    var lastGetQueryItems: [URLQueryItem]?
+
+    func get(path: String, queryItems: [URLQueryItem]) async throws -> Data {
+        lastGetPath = path
+        lastGetQueryItems = queryItems
+        return Data("{\"ok\":true}".utf8)
+    }
+
+    func post(path: String, queryItems: [URLQueryItem], body: Data?) async throws -> Data {
+        return Data()
+    }
+
+    func put(path: String, queryItems: [URLQueryItem], body: Data?) async throws -> Data {
+        return Data()
+    }
+
+    func delete(path: String, queryItems: [URLQueryItem]) async throws -> Data {
+        return Data()
+    }
+}
+
 final class PlaceholderTests: XCTestCase {
     func testBootstrapLoadsConfig() async throws {
         let fm = FileManager.default
@@ -125,18 +149,24 @@ final class PlaceholderTests: XCTestCase {
         XCTAssertTrue(message.contains("User token is missing"))
     }
 
-    func testReplayReturnsNotAvailable() async throws {
-        let client = AppleMusicClient(developerToken: "dev", userToken: "user")
+    func testReplayUsesMusicSummariesEndpoint() async throws {
+        let client = ReplayStubClient()
+        client.userToken = "user"
         let registry = ToolRegistry(client: client)
-        let params = CallTool.Parameters(name: "get_replay")
+        let params = CallTool.Parameters(name: "get_replay", arguments: [
+            "year": .string("latest"),
+            "views": .string("top-songs")
+        ])
 
         let result = try await registry.handleGetReplay(params: params)
-        XCTAssertEqual(result.isError, true)
-        let message = result.content.compactMap { content -> String? in
-            if case let .text(text) = content { return text }
-            return nil
-        }.joined(separator: "\n")
-        XCTAssertTrue(message.contains("Replay data endpoint"))
+        XCTAssertEqual(result.isError, false)
+        XCTAssertEqual(client.lastGetPath, "v1/me/music-summaries")
+        let query = client.lastGetQueryItems ?? []
+        let dict = query.reduce(into: [String: String]()) { partialResult, item in
+            if let value = item.value { partialResult[item.name] = value }
+        }
+        XCTAssertEqual(dict["filter[year]"], "latest")
+        XCTAssertEqual(dict["views"], "top-songs")
     }
 
         func testPaginationNextOffsetParsesOffset() throws {
