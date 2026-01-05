@@ -1,27 +1,16 @@
 import ArgumentParser
 import Foundation
-import MCP
 import AppleMusicCore
 
 @main
-struct AppleMusicMCPServerMain: AsyncParsableCommand {
+struct AppleMusicToolMain: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
-        abstract: "Apple Music MCP Server",
-        subcommands: [Run.self, Setup.self],
-        defaultSubcommand: Run.self
+        abstract: "Apple Music CLI",
+        subcommands: [Setup.self],
+        helpNames: [.long, .short]
     )
 
-    struct Run: AsyncParsableCommand {
-        static let configuration = CommandConfiguration(abstract: "Start the MCP server.")
-
-        @Option(name: .customLong("config"), help: "Path to a JSON config file (default: ~/Library/Application Support/apple-music-mcp/config.json).")
-        var configPath: String?
-
-        func run() async throws {
-            let bootstrap = ServerBootstrap(configPath: configPath)
-            try await bootstrap.start()
-        }
-    }
+    init() {}
 
     struct Setup: AsyncParsableCommand {
         static let configuration = CommandConfiguration(abstract: "Persist a Music-User-Token (CLI or browser helper).")
@@ -35,11 +24,14 @@ struct AppleMusicMCPServerMain: AsyncParsableCommand {
         @Option(name: .customLong("port"), help: "Port for the local HTTP server (default: 3000).")
         var port: UInt16?
 
-        @Option(name: .customLong("config"), help: "Path to config file (default: ~/Library/Application Support/apple-music-mcp/config.json).")
+        @Option(name: .customLong("config"), help: "Path to config file (default: ~/Library/Application Support/apple-music-tool/config.json).")
         var configPath: String?
 
         func run() async throws {
-            let coordinator = SetupCoordinator(configPath: configPath)
+            let coordinator = SetupCoordinator(
+                configPath: configPath,
+                defaultConfigPath: "~/Library/Application Support/apple-music-tool/config.json"
+            )
             if serve {
                 try await coordinator.runServerFlow(port: port ?? 3000)
             } else {

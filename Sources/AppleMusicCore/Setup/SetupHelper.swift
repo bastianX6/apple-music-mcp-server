@@ -1,18 +1,19 @@
 import Foundation
 
-struct SetupHelper {
-    private static let defaultConfigPath = "~/Library/Application Support/apple-music-mcp/config.json"
+public struct SetupHelper {
+    public static let defaultConfigPath = "~/Library/Application Support/apple-music-mcp/config.json"
 
-    static func configURL(overridePath: String? = nil) -> URL {
-        let override = overridePath ?? defaultConfigPath
+    public static func configURL(overridePath: String? = nil, defaultPath: String = defaultConfigPath) -> URL {
+        let override = overridePath ?? defaultPath
         let expanded = (override as NSString).expandingTildeInPath
         return URL(fileURLWithPath: expanded)
     }
 
     @discardableResult
-    static func persistConfig(
+    public static func persistConfig(
         _ config: AppConfig,
         configPath: String? = nil,
+        defaultPath: String = defaultConfigPath
     ) throws -> URL {
         var sanitized = AppConfig(
             teamID: config.teamID?.trimmingCharacters(in: .whitespacesAndNewlines),
@@ -30,7 +31,7 @@ struct SetupHelper {
             throw SetupError.emptyToken
         }
 
-        let url = configURL(overridePath: configPath)
+        let url = configURL(overridePath: configPath, defaultPath: defaultPath)
         let existing = loadConfig(at: url)
         var merged = existing
         if let teamID = sanitized.teamID { merged.teamID = teamID }
@@ -43,7 +44,7 @@ struct SetupHelper {
         return url
     }
 
-    static func loadConfig(at url: URL) -> AppConfig {
+    public static func loadConfig(at url: URL) -> AppConfig {
         let fm = FileManager.default
         guard fm.fileExists(atPath: url.path) else { return AppConfig() }
         guard let data = try? Data(contentsOf: url), let decoded = try? JSONDecoder().decode(AppConfig.self, from: data) else {
@@ -69,11 +70,11 @@ struct SetupHelper {
     }
 }
 
-enum SetupError: LocalizedError {
+public enum SetupError: LocalizedError {
     case emptyToken
     case missingEnvironmentVariable(String)
 
-    var errorDescription: String? {
+    public var errorDescription: String? {
         switch self {
         case .emptyToken:
             return "User token is empty. Provide a valid Music-User-Token."

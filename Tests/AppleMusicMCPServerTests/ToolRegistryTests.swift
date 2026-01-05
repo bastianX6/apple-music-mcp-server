@@ -1,6 +1,6 @@
 import XCTest
 import MCP
-@testable import AppleMusicMCPServer
+@testable import AppleMusicCore
 
 final class ToolRegistryTests: XCTestCase {
     // Simple stub client to capture requests without network.

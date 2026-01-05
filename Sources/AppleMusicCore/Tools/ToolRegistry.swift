@@ -1,8 +1,8 @@
 import Foundation
 import MCP
 
-struct ToolRegistry: Sendable {
-    let client: AppleMusicClientProtocol
+public struct ToolRegistry: Sendable {
+    public let client: AppleMusicClientProtocol
     let storefrontResolver: StorefrontResolver
     private let storefrontToolNames: Set<String> = [
         "search_catalog",
@@ -26,7 +26,7 @@ struct ToolRegistry: Sendable {
         "get_best_language_tag"
     ]
 
-    init(client: AppleMusicClientProtocol, storefrontResolver: StorefrontResolver = StorefrontResolver()) {
+    public init(client: AppleMusicClientProtocol, storefrontResolver: StorefrontResolver = StorefrontResolver()) {
         self.client = client
         self.storefrontResolver = storefrontResolver
     }
@@ -185,7 +185,7 @@ extension ToolRegistry {
     }
 }
 
-actor StorefrontResolver {
+public actor StorefrontResolver {
     enum Error: Swift.Error, LocalizedError {
         case missingStorefront
 
@@ -198,6 +198,8 @@ actor StorefrontResolver {
     }
 
     private var cached: String?
+
+    public init() {}
 
     func resolve(client: AppleMusicClientProtocol) async throws -> String {
         if let cached {

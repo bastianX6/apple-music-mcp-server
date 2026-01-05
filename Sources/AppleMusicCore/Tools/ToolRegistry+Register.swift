@@ -1,7 +1,7 @@
 import MCP
 
 extension ToolRegistry {
-    func register(on server: Server) async {
+    public func register(on server: Server) async {
         await server.withMethodHandler(ListTools.self) { _ in
             .init(tools: tools)
         }

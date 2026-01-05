@@ -1,6 +1,7 @@
 import Foundation
 import MCP
 import Logging
+import AppleMusicCore
 
 struct ServerBootstrap {
     private static let loggingBootstrap: Void = {

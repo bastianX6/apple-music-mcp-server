@@ -6,10 +6,10 @@ import CryptoKit
 import Crypto
 #endif
 
-struct DeveloperTokenProvider {
+public struct DeveloperTokenProvider {
     private let tokenLifetime: TimeInterval = 60 * 60 * 24 * 180 // 180 days (max allowed ~6 months)
 
-    func token(using config: AppConfig) throws -> String {
+    public func token(using config: AppConfig) throws -> String {
         guard let teamID = config.teamID?.trimmingCharacters(in: .whitespacesAndNewlines), teamID.isEmpty == false,
               let keyID = config.musicKitKeyID?.trimmingCharacters(in: .whitespacesAndNewlines), keyID.isEmpty == false else {
             throw AuthError.missingCredentials

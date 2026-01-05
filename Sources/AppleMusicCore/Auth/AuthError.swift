@@ -1,12 +1,12 @@
 import Foundation
 
-enum AuthError: LocalizedError {
+public enum AuthError: LocalizedError {
     case missingCredentials
     case missingKey
     case invalidKey
     case signingFailed(reason: String)
 
-    var errorDescription: String? {
+    public var errorDescription: String? {
         switch self {
         case .missingCredentials:
             return "Developer token credentials are missing. Configure team ID, key ID, and private key."

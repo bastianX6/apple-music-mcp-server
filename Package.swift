@@ -7,7 +7,8 @@ let package = Package(
         .macOS(.v15)
     ],
     products: [
-        .executable(name: "apple-music-mcp", targets: ["AppleMusicMCPServer"])
+        .executable(name: "apple-music-mcp", targets: ["AppleMusicMCPServer"]),
+        .executable(name: "apple-music-tool", targets: ["AppleMusicTool"])
     ],
     dependencies: [
         .package(url: "https://github.com/modelcontextprotocol/swift-sdk.git", from: "0.10.0"),
@@ -17,18 +18,17 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-configuration.git", from: "1.0.0")
     ],
     targets: [
-        .executableTarget(
-            name: "AppleMusicMCPServer",
+        .target(
+            name: "AppleMusicCore",
             dependencies: [
                 .product(name: "MCP", package: "swift-sdk"),
-                .product(name: "ArgumentParser", package: "swift-argument-parser"),
                 .product(name: "NIO", package: "swift-nio"),
                 .product(name: "NIOHTTP1", package: "swift-nio"),
                 .product(name: "NIOPosix", package: "swift-nio"),
                 .product(name: "Crypto", package: "swift-crypto"),
                 .product(name: "Configuration", package: "swift-configuration")
             ],
-            path: "Sources/AppleMusicMCPServer",
+            path: "Sources/AppleMusicCore",
             resources: [
                 .copy("Resources/SetupPage")
             ],
@@ -36,9 +36,37 @@ let package = Package(
                 .unsafeFlags(["-parse-as-library"])
             ]
         ),
+        .executableTarget(
+            name: "AppleMusicMCPServer",
+            dependencies: [
+                "AppleMusicCore",
+                .product(name: "ArgumentParser", package: "swift-argument-parser"),
+                .product(name: "MCP", package: "swift-sdk"),
+                .product(name: "NIO", package: "swift-nio"),
+                .product(name: "NIOHTTP1", package: "swift-nio"),
+                .product(name: "NIOPosix", package: "swift-nio")
+            ],
+            path: "Sources/AppleMusicMCPServer",
+            swiftSettings: [
+                .unsafeFlags(["-parse-as-library"])
+            ]
+        ),
+        .executableTarget(
+            name: "AppleMusicTool",
+            dependencies: [
+                "AppleMusicCore",
+                .product(name: "ArgumentParser", package: "swift-argument-parser"),
+                .product(name: "MCP", package: "swift-sdk"),
+                .product(name: "Configuration", package: "swift-configuration")
+            ],
+            path: "Sources/AppleMusicTool",
+            swiftSettings: [
+                .unsafeFlags(["-parse-as-library"])
+            ]
+        ),
         .testTarget(
             name: "AppleMusicMCPServerTests",
-            dependencies: ["AppleMusicMCPServer"],
+            dependencies: ["AppleMusicCore"],
             path: "Tests/AppleMusicMCPServerTests"
         )
     ]

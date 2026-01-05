@@ -79,6 +79,26 @@
             "target": "apple-music-mcp",
             "configuration": "release",
             "preLaunchTask": "swift: Build Release apple-music-mcp"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:apple-music-mcp-server}",
+            "name": "Debug apple-music-tool",
+            "target": "apple-music-tool",
+            "configuration": "debug",
+            "preLaunchTask": "swift: Build Debug apple-music-tool"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:apple-music-mcp-server}",
+            "name": "Release apple-music-tool",
+            "target": "apple-music-tool",
+            "configuration": "release",
+            "preLaunchTask": "swift: Build Release apple-music-tool"
         }
     ]
 }

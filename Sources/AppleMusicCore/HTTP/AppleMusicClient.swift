@@ -3,16 +3,21 @@ import Foundation
 import FoundationNetworking
 #endif
 
-struct AppleMusicClient: AppleMusicClientProtocol {
-    let developerToken: String
-    let userToken: String?
-    let baseURL = URL(string: "https://api.music.apple.com")!
+public struct AppleMusicClient: AppleMusicClientProtocol {
+    public let developerToken: String
+    public let userToken: String?
+    public let baseURL = URL(string: "https://api.music.apple.com")!
 
-    enum HTTPError: LocalizedError {
+    public init(developerToken: String, userToken: String?) {
+        self.developerToken = developerToken
+        self.userToken = userToken
+    }
+
+    public enum HTTPError: LocalizedError {
         case invalidResponse
         case badStatus(code: Int, payload: Data, apiError: AppleMusicAPIError?)
 
-        var errorDescription: String? {
+        public var errorDescription: String? {
             switch self {
             case .invalidResponse:
                 return "Invalid response from Apple Music API."
@@ -25,19 +30,19 @@ struct AppleMusicClient: AppleMusicClientProtocol {
         }
     }
 
-    func get(path: String, queryItems: [URLQueryItem] = []) async throws -> Data {
+    public func get(path: String, queryItems: [URLQueryItem] = []) async throws -> Data {
         try await request(method: "GET", path: path, queryItems: queryItems, body: nil)
     }
 
-    func post(path: String, queryItems: [URLQueryItem] = [], body: Data?) async throws -> Data {
+    public func post(path: String, queryItems: [URLQueryItem] = [], body: Data?) async throws -> Data {
         try await request(method: "POST", path: path, queryItems: queryItems, body: body)
     }
 
-    func put(path: String, queryItems: [URLQueryItem] = [], body: Data?) async throws -> Data {
+    public func put(path: String, queryItems: [URLQueryItem] = [], body: Data?) async throws -> Data {
         try await request(method: "PUT", path: path, queryItems: queryItems, body: body)
     }
 
-    func delete(path: String, queryItems: [URLQueryItem] = []) async throws -> Data {
+    public func delete(path: String, queryItems: [URLQueryItem] = []) async throws -> Data {
         try await request(method: "DELETE", path: path, queryItems: queryItems, body: nil)
     }
 

@@ -2,16 +2,17 @@ import Configuration
 import Foundation
 import SystemPackage
 
-struct ConfigLoader {
+public struct ConfigLoader {
     private let fileManager = FileManager.default
     private let overrideConfigPath: String?
-    private let defaultConfigPath = "~/Library/Application Support/apple-music-mcp/config.json"
+    private let defaultConfigPath: String
 
-    init(configPath: String? = nil) {
+    public init(configPath: String? = nil, defaultConfigPath: String = "~/Library/Application Support/apple-music-mcp/config.json") {
         self.overrideConfigPath = configPath
+        self.defaultConfigPath = defaultConfigPath
     }
 
-    func load() async throws -> AppConfig {
+    public func load() async throws -> AppConfig {
         let configURL = resolveConfigURL()
         let providers = try await makeProviders(configURL: configURL)
         let reader = ConfigReader(providers: providers)

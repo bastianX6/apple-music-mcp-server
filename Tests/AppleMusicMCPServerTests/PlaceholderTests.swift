@@ -1,7 +1,7 @@
 import XCTest
 import Foundation
 import MCP
-@testable import AppleMusicMCPServer
+@testable import AppleMusicCore
 
 final class PlaceholderTests: XCTestCase {
     func testBootstrapLoadsConfig() async throws {

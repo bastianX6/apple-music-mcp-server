@@ -1,19 +1,21 @@
 import Foundation
 
-struct SetupCoordinator {
+public struct SetupCoordinator: Sendable {
     let configPath: String?
+    let defaultConfigPath: String
 
-    init(configPath: String?) {
+    public init(configPath: String?, defaultConfigPath: String = SetupHelper.defaultConfigPath) {
         self.configPath = configPath
+        self.defaultConfigPath = defaultConfigPath
     }
 
-    func runCLIFlow(token: String?) async throws {
+    public func runCLIFlow(token: String?) async throws {
         let baseConfig = try await loadConfigForSetup()
         let tokenValue = try await resolveToken(provided: token)
         do {
             var updated = baseConfig
             updated.userToken = tokenValue
-            let url = try SetupHelper.persistConfig(updated, configPath: configPath)
+            let url = try SetupHelper.persistConfig(updated, configPath: configPath, defaultPath: defaultConfigPath)
             print("Saved Music-User-Token to \(url.path) with permissions 0600.")
             print("You can now start apple-music-mcp.")
         } catch {
@@ -23,7 +25,7 @@ struct SetupCoordinator {
         }
     }
 
-    func runServerFlow(port: UInt16 = 3000) async throws {
+    public func runServerFlow(port: UInt16 = 3000) async throws {
         let config = try await loadConfigForSetup()
         let developerToken = try DeveloperTokenProvider().token(using: config)
 
@@ -32,7 +34,7 @@ struct SetupCoordinator {
             do {
                 var updated = config
                 updated.userToken = token
-                let url = try SetupHelper.persistConfig(updated, configPath: configPath)
+                let url = try SetupHelper.persistConfig(updated, configPath: configPath, defaultPath: defaultConfigPath)
                 print("Saved Music-User-Token to \(url.path) with permissions 0600.")
                 print("You can now start apple-music-mcp.")
             } catch {
@@ -54,7 +56,7 @@ struct SetupCoordinator {
     }
 
     private func loadConfigForSetup() async throws -> AppConfig {
-        var config = SetupHelper.loadConfig(at: SetupHelper.configURL(overridePath: configPath))
+        var config = SetupHelper.loadConfig(at: SetupHelper.configURL(overridePath: configPath, defaultPath: defaultConfigPath))
         let env = ProcessInfo.processInfo.environment
         config.teamID = try requiredEnv("APPLE_MUSIC_TEAM_ID", env: env)
         config.musicKitKeyID = try requiredEnv("APPLE_MUSIC_MUSICKIT_ID", env: env)
